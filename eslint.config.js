@@ -39,9 +39,9 @@ export default tseslint.config(
     ignores: ['dist/**', 'node_modules/**'],
   },
 
-  // Disable type-checked rules for plain JS files (e.g. bin shims)
+  // Disable type-checked rules for the eslint config file itself
   {
-    files: ['**/*.js'],
+    files: ['eslint.config.js'],
     ...tseslint.configs.disableTypeChecked,
   },
 );

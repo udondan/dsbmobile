@@ -1,32 +1,132 @@
-# DSBmobile MCP Server
+# @udondan/dsbmobile
 
-Ein [MCP (Model Context Protocol)](https://modelcontextprotocol.io) Server, der KI-Assistenten den Zugriff auf [DSBmobile](https://www.dsbmobile.de) ermöglicht – die digitale Schulkommunikationsplattform, über die tausende Schulen Vertretungspläne, Neuigkeiten und Dokumente veröffentlichen.
+Node.js-Paket für den Zugriff auf [DSBmobile](https://www.dsbmobile.de) – die digitale Schulkommunikationsplattform für Vertretungspläne, Neuigkeiten und Dokumente. Es kapselt die DSBmobile-API und bietet drei Schnittstellen über einen gemeinsamen Kern:
 
-> **Hinweis**: Dieser Server benötigt [Bun](https://bun.sh) als Laufzeitumgebung. Der DSBmobile-API-Server unterstützt kein HTTP/2, das Node.js standardmäßig verwendet. Bun löst dies ohne zusätzliche Konfiguration korrekt.
+- **SDK** – importierbare `DsbmobileClient`-Klasse für Node.js-Projekte
+- **CLI** – `dsbmobile`-Befehl für das Terminal
+- **MCP-Server** – `dsbmobile mcp` stellt alle Funktionen als Tools für KI-Assistenten bereit
 
-## Funktionen
+## Inhalt
 
-- **Vertretungsplan-Übersicht** (`get_timetables`): Listet alle verfügbaren Vertretungsplan-Einträge (heute, morgen, wochenweise) mit Links zu den HTML-Planseiten auf
-- **Vertretungseinträge** (`get_substitutions`): Lädt und parst die Vertretungspläne und gibt strukturierte Einträge pro Klasse zurück – filterbar nach Klasse
-- **Neuigkeiten** (`get_news`): Ruft Schulnachrichten und Ankündigungen ab
-- **Dokumente** (`get_documents`): Listet verfügbare Dokumente und Dateien mit Download-Links auf
+- [Installation](#installation)
+- [Konfiguration](#konfiguration)
+- [SDK](#sdk)
+- [CLI](#cli)
+- [MCP-Server](#mcp-server)
+- [Verfügbare MCP-Tools](#verfügbare-mcp-tools)
+- [Entwicklung](#entwicklung)
+- [Lizenz](#lizenz)
 
-## Voraussetzungen
-
-- [Bun](https://bun.sh) (Installation: `curl -fsSL https://bun.sh/install | bash`)
-- Ein gültiger DSBmobile-Account (Benutzername und Passwort)
-
-## Schnellstart mit bunx
-
-Keine Installation nötig – direkt mit `bunx` starten:
+## Installation
 
 ```bash
-DSB_USERNAME=benutzername DSB_PASSWORD=passwort bunx github:udondan/dsbmobile-mcp
+# Globale Installation (empfohlen für CLI-Nutzung)
+npm install -g @udondan/dsbmobile
+
+# Ohne Installation direkt nutzen
+DSB_USERNAME=benutzername DSB_PASSWORD=passwort npx @udondan/dsbmobile mcp
 ```
 
-## Konfiguration mit Claude Desktop
+## Konfiguration
 
-Die folgende Konfiguration in die Claude Desktop Konfigurationsdatei eintragen:
+Die Zugangsdaten werden über Umgebungsvariablen übergeben:
+
+| Variable       | Pflicht | Beschreibung                                                                                        |
+| -------------- | ------- | --------------------------------------------------------------------------------------------------- |
+| `DSB_USERNAME` | ✅      | DSBmobile-Benutzername bzw. -ID                                                                     |
+| `DSB_PASSWORD` | ✅      | DSBmobile-Passwort                                                                                  |
+| `DSB_CLASS`    | ❌      | Standard-Klassenfilter für `get_substitutions` (z. B. `07b`). Kann pro Aufruf überschrieben werden. |
+
+## SDK
+
+```bash
+npm install @udondan/dsbmobile
+```
+
+```ts
+import { DsbmobileClient } from '@udondan/dsbmobile';
+
+const client = new DsbmobileClient({
+  username: process.env.DSB_USERNAME!,
+  password: process.env.DSB_PASSWORD!,
+});
+
+// Vertretungsplan abrufen
+const plans = await client.getSubstitutions();
+
+// Timetable-Einträge (Plan-URLs) abrufen
+const timetables = await client.getTimetables();
+
+// Neuigkeiten abrufen
+const news = await client.getNews();
+
+// Dokumente abrufen
+const documents = await client.getDocuments();
+```
+
+### Exportierte Typen
+
+```ts
+import type {
+  DsbmobileConfig,
+  SubstitutionPlan,
+  SubstitutionEntry,
+  TimetableEntry,
+  NewsEntry,
+  DocumentEntry,
+  DsbItem,
+} from '@udondan/dsbmobile';
+```
+
+## CLI
+
+```bash
+# Vertretungspläne als JSON ausgeben
+dsbmobile substitutions
+
+# Nur eine bestimmte Klasse (überschreibt DSB_CLASS)
+dsbmobile substitutions --class 07b
+
+# Timetable-Einträge (Plan-URLs) als JSON ausgeben
+dsbmobile timetables
+
+# Neuigkeiten als JSON ausgeben
+dsbmobile news
+
+# Dokumente als JSON ausgeben
+dsbmobile documents
+
+# MCP-Server über stdio starten
+dsbmobile mcp
+```
+
+## MCP-Server
+
+### Einrichtung in Claude Code
+
+```bash
+claude mcp add dsbmobile -- npx @udondan/dsbmobile mcp
+```
+
+Anschließend die Zugangsdaten in der MCP-Konfiguration hinterlegen (`~/.claude.json` oder `.claude/settings.json`):
+
+```json
+{
+  "mcpServers": {
+    "dsbmobile": {
+      "command": "npx",
+      "args": ["@udondan/dsbmobile", "mcp"],
+      "env": {
+        "DSB_USERNAME": "benutzername",
+        "DSB_PASSWORD": "passwort",
+        "DSB_CLASS": "07b"
+      }
+    }
+  }
+}
+```
+
+### Einrichtung in Claude Desktop
 
 **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
@@ -35,43 +135,33 @@ Die folgende Konfiguration in die Claude Desktop Konfigurationsdatei eintragen:
 {
   "mcpServers": {
     "dsbmobile": {
-      "command": "bunx",
-      "args": ["github:udondan/dsbmobile-mcp"],
+      "command": "npx",
+      "args": ["@udondan/dsbmobile", "mcp"],
       "env": {
         "DSB_USERNAME": "benutzername",
         "DSB_PASSWORD": "passwort",
-        "DSB_CLASS": "07b" // optional
+        "DSB_CLASS": "07b"
       }
     }
   }
 }
 ```
 
-## Konfiguration mit anderen MCP-Clients
-
-Der Server verwendet stdio-Transport und ist mit jedem MCP-Client kompatibel, der subprocess-basierte Server unterstützt.
+### Einrichtung in anderen MCP-Clients
 
 ```json
 {
-  "command": "bunx",
-  "args": ["github:udondan/dsbmobile-mcp"],
+  "command": "npx",
+  "args": ["@udondan/dsbmobile", "mcp"],
   "env": {
     "DSB_USERNAME": "benutzername",
     "DSB_PASSWORD": "passwort",
-    "DSB_CLASS": "07b" // optional
+    "DSB_CLASS": "07b"
   }
 }
 ```
 
-## Umgebungsvariablen
-
-| Variable       | Pflicht | Beschreibung                                                                                                                       |
-| -------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `DSB_USERNAME` | ✅      | DSBmobile-Benutzername bzw. -ID                                                                                                    |
-| `DSB_PASSWORD` | ✅      | DSBmobile-Passwort                                                                                                                 |
-| `DSB_CLASS`    | ❌      | Standard-Klassenfilter für `get_substitutions` (z. B. `07b`). Kann pro Aufruf über den Parameter `className` überschrieben werden. |
-
-## Verfügbare Tools
+## Verfügbare MCP-Tools
 
 ### `get_timetables`
 
@@ -84,12 +174,6 @@ Gibt alle verfügbaren Vertretungsplan-Einträge zurück.
 - `date`: Zeitstempel der letzten Aktualisierung im Format `TT.MM.JJJJ HH:MM`
 - `url`: Link zur HTML-Planseite mit der Vertretungstabelle
 - `previewUrl`: Link zu einem Vorschaubild (optional)
-
-**Beispielfragen**:
-
-- „Habe ich heute Vertretung?"
-- „Was steht diese Woche im Vertretungsplan?"
-- „Zeig mir den aktuellen Vertretungsplan."
 
 ### `get_substitutions`
 
@@ -116,34 +200,25 @@ Lädt und parst alle Vertretungsplan-Seiten und gibt strukturierte Einträge zur
   - `substituteRoom`: Ausweichraum
   - `text`: Zusätzliche Hinweise
 
-**Beispielfragen**:
-
-- „Hat die 07b heute Vertretung?"
-- „Wer vertritt heute Herrn Müller?"
-- „Fällt die 3. Stunde aus?"
-
 ### `get_news`
 
 Ruft alle Neuigkeiten und Ankündigungen von DSBmobile ab.
 
-**Rückgabe**: Liste von Nachrichten, jeweils mit:
-
-- `id`: Eindeutige ID
-- `title`: Überschrift
-- `detail`: Inhalt oder Link
-- `date`: Veröffentlichungsdatum
-- `tags`: Zugehörige Schlagwörter
+**Rückgabe**: Liste von Nachrichten, jeweils mit `id`, `title`, `detail`, `date`, `tags`.
 
 ### `get_documents`
 
 Listet alle verfügbaren Dokumente und Dateien auf.
 
-**Rückgabe**: Liste von Dokumenten, jeweils mit:
+**Rückgabe**: Liste von Dokumenten, jeweils mit `id`, `title`, `url`, `date`.
 
-- `id`: Eindeutige ID
-- `title`: Dokumentname
-- `url`: Download-Link (typischerweise PDF, JPG oder PNG)
-- `date`: Hochladedatum
+## Sicherheit
+
+- **CLI und MCP-Server**: Zugangsdaten werden ausschließlich über Umgebungsvariablen übergeben und nie im Code hinterlegt
+- **SDK**: Zugangsdaten werden explizit als `DsbmobileConfig`-Objekt im Konstruktor übergeben – nie hartcodiert oder aus Umgebungsvariablen gelesen
+- Zugangsdaten erscheinen weder in Logs noch in Fehlermeldungen
+- Es werden keine sensiblen Daten auf der Festplatte gespeichert
+- Der Server ist schreibgeschützt – er kann keine Daten auf DSBmobile verändern
 
 ## Entwicklung
 
@@ -155,22 +230,21 @@ cd dsbmobile-mcp
 # Abhängigkeiten installieren
 bun install
 
-# Im Entwicklungsmodus starten (automatischer Neustart bei Änderungen)
-DSB_USERNAME=benutzername DSB_PASSWORD=passwort bun run src/index.ts
-
-# Bauen
+# TypeScript kompilieren
 bun run build
 
-# Gebaute Version starten
-DSB_USERNAME=benutzername DSB_PASSWORD=passwort bun run dist/index.js
+# Im Watch-Modus kompilieren
+bun run dev
+
+# MCP-Server starten
+DSB_USERNAME=benutzername DSB_PASSWORD=passwort node dist/cli.js mcp
+
+# Tests ausführen
+bun run test
+
+# Lint
+bun run lint
 ```
-
-## Sicherheit
-
-- Zugangsdaten werden ausschließlich über Umgebungsvariablen übergeben und nie im Code hinterlegt
-- Zugangsdaten erscheinen weder in Logs noch in Fehlermeldungen
-- Es werden keine sensiblen Daten auf der Festplatte gespeichert
-- Der Server ist schreibgeschützt – er kann keine Daten auf DSBmobile verändern
 
 ## Lizenz
 

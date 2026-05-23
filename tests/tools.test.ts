@@ -1,6 +1,7 @@
-import { describe, expect, mock, test } from 'bun:test';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { DsbmobileClient } from '../src/services/dsbmobile.js';
+import { ENV_CLASS } from '../src/constants.js';
 import { registerDocumentsTool } from '../src/tools/documents.js';
 import { registerNewsTool } from '../src/tools/news.js';
 import { registerSubstitutionsTool } from '../src/tools/substitutions.js';
@@ -19,10 +20,10 @@ interface ToolResult {
 
 function makeMockClient(overrides: Partial<DsbmobileClient> = {}): DsbmobileClient {
   return {
-    getTimetables: mock(() => Promise.resolve<TimetableEntry[]>([])),
-    getNews: mock(() => Promise.resolve<NewsEntry[]>([])),
-    getDocuments: mock(() => Promise.resolve<DocumentEntry[]>([])),
-    getSubstitutions: mock(() => Promise.resolve<SubstitutionPlan[]>([])),
+    getTimetables: vi.fn(() => Promise.resolve<TimetableEntry[]>([])),
+    getNews: vi.fn(() => Promise.resolve<NewsEntry[]>([])),
+    getDocuments: vi.fn(() => Promise.resolve<DocumentEntry[]>([])),
+    getSubstitutions: vi.fn(() => Promise.resolve<SubstitutionPlan[]>([])),
     ...overrides,
   } as unknown as DsbmobileClient;
 }
@@ -114,7 +115,7 @@ describe('get_timetables tool', () => {
         url: 'https://example.com/plan.htm',
       },
     ];
-    const client = makeMockClient({ getTimetables: mock(() => Promise.resolve(entries)) });
+    const client = makeMockClient({ getTimetables: vi.fn(() => Promise.resolve(entries)) });
     const result = await callTool(registerTimetablesTool, client);
     expect(result.text).toContain('V-Homepage heute');
     expect(result.text).toContain('https://example.com/plan.htm');
@@ -123,7 +124,7 @@ describe('get_timetables tool', () => {
 
   test('returns error text on failure', async () => {
     const client = makeMockClient({
-      getTimetables: mock(() => Promise.reject(new Error('Error: Auth failed'))),
+      getTimetables: vi.fn(() => Promise.reject(new Error('Error: Auth failed'))),
     });
     const result = await callTool(registerTimetablesTool, client);
     expect(result.isError).toBe(true);
@@ -134,6 +135,10 @@ describe('get_timetables tool', () => {
 // --- Substitutions tool ---
 
 describe('get_substitutions tool', () => {
+  beforeEach(() => {
+    delete process.env[ENV_CLASS];
+  });
+
   test('returns message when no plans available', async () => {
     const client = makeMockClient();
     const result = await callTool(registerSubstitutionsTool, client);
@@ -142,7 +147,7 @@ describe('get_substitutions tool', () => {
 
   test('returns all entries when no filter given', async () => {
     const plan = makePlan([entryA, entryB]);
-    const client = makeMockClient({ getSubstitutions: mock(() => Promise.resolve([plan])) });
+    const client = makeMockClient({ getSubstitutions: vi.fn(() => Promise.resolve([plan])) });
     const result = await callTool(registerSubstitutionsTool, client);
     expect(result.structuredContent.totalEntries).toBe(2);
     expect(result.text).toContain('10a');
@@ -151,7 +156,7 @@ describe('get_substitutions tool', () => {
 
   test('filters by className parameter', async () => {
     const plan = makePlan([entryA, entryB]);
-    const client = makeMockClient({ getSubstitutions: mock(() => Promise.resolve([plan])) });
+    const client = makeMockClient({ getSubstitutions: vi.fn(() => Promise.resolve([plan])) });
     const result = await callTool(registerSubstitutionsTool, client, { className: '10a' });
     expect(result.structuredContent.totalEntries).toBe(1);
     expect(result.text).toContain('Class 10a');
@@ -160,37 +165,37 @@ describe('get_substitutions tool', () => {
 
   test('className filter is case-insensitive', async () => {
     const plan = makePlan([entryA]);
-    const client = makeMockClient({ getSubstitutions: mock(() => Promise.resolve([plan])) });
+    const client = makeMockClient({ getSubstitutions: vi.fn(() => Promise.resolve([plan])) });
     const result = await callTool(registerSubstitutionsTool, client, { className: '10A' });
     expect(result.structuredContent.totalEntries).toBe(1);
   });
 
   test('returns message when filter matches nothing', async () => {
     const plan = makePlan([entryA]);
-    const client = makeMockClient({ getSubstitutions: mock(() => Promise.resolve([plan])) });
+    const client = makeMockClient({ getSubstitutions: vi.fn(() => Promise.resolve([plan])) });
     const result = await callTool(registerSubstitutionsTool, client, { className: '99z' });
     expect(result.text).toContain('99z');
     expect(result.isError).toBeUndefined();
   });
 
   test('uses DSB_CLASS env var as default filter', async () => {
-    process.env.DSB_CLASS = '11a';
+    process.env[ENV_CLASS] = '11a';
     const plan = makePlan([entryA, entryB]);
-    const client = makeMockClient({ getSubstitutions: mock(() => Promise.resolve([plan])) });
+    const client = makeMockClient({ getSubstitutions: vi.fn(() => Promise.resolve([plan])) });
     const result = await callTool(registerSubstitutionsTool, client);
     expect(result.structuredContent.totalEntries).toBe(1);
     expect(result.text).toContain('11a');
-    delete process.env.DSB_CLASS;
+    delete process.env[ENV_CLASS];
   });
 
   test('className param overrides DSB_CLASS env var', async () => {
-    process.env.DSB_CLASS = '11a';
+    process.env[ENV_CLASS] = '11a';
     const plan = makePlan([entryA, entryB]);
-    const client = makeMockClient({ getSubstitutions: mock(() => Promise.resolve([plan])) });
+    const client = makeMockClient({ getSubstitutions: vi.fn(() => Promise.resolve([plan])) });
     const result = await callTool(registerSubstitutionsTool, client, { className: '10a' });
     expect(result.structuredContent.totalEntries).toBe(1);
     expect(result.text).toContain('10a');
-    delete process.env.DSB_CLASS;
+    delete process.env[ENV_CLASS];
   });
 });
 
@@ -213,7 +218,7 @@ describe('get_news tool', () => {
         tags: '',
       },
     ];
-    const client = makeMockClient({ getNews: mock(() => Promise.resolve(news)) });
+    const client = makeMockClient({ getNews: vi.fn(() => Promise.resolve(news)) });
     const result = await callTool(registerNewsTool, client);
     expect(result.text).toContain('Schulausflug');
     expect(result.text).toContain('Morgen kein Unterricht');
@@ -239,7 +244,7 @@ describe('get_documents tool', () => {
         date: '13.03.2026 09:00',
       },
     ];
-    const client = makeMockClient({ getDocuments: mock(() => Promise.resolve(documents)) });
+    const client = makeMockClient({ getDocuments: vi.fn(() => Promise.resolve(documents)) });
     const result = await callTool(registerDocumentsTool, client);
     expect(result.text).toContain('Elternbrief');
     expect(result.text).toContain('https://example.com/brief.pdf');

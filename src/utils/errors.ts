@@ -9,10 +9,7 @@ export function handleApiError(error: unknown): string {
     if (error.response) {
       switch (error.response.status) {
         case 401: {
-          return (
-            'Error: Authentication failed. Please check your DSB_USERNAME and DSB_PASSWORD ' +
-            'environment variables and ensure they are correct.'
-          );
+          return 'Error: Authentication failed. Please verify your credentials are correct.';
         }
         case 403: {
           return 'Error: Access denied. Your account may not have permission to access this resource.';
@@ -48,22 +45,8 @@ export function handleApiError(error: unknown): string {
 }
 
 /**
- * Creates an error message for invalid/missing credentials.
- * Used at startup to fail fast with a clear message.
- */
-export function createCredentialError(missingVariable: string): string {
-  return (
-    `Error: The ${missingVariable} environment variable is required but not set. ` +
-    `Please set DSB_USERNAME and DSB_PASSWORD before starting the server.`
-  );
-}
-
-/**
  * Creates an error message for authentication failure (empty token response).
  */
 export function createAuthError(): string {
-  return (
-    'Error: Authentication failed. DSBmobile rejected the provided credentials. ' +
-    'Please verify your DSB_USERNAME and DSB_PASSWORD are correct.'
-  );
+  return 'Error: Authentication failed. DSBmobile rejected the provided credentials. Please verify your credentials are correct.';
 }

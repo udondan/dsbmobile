@@ -1,18 +1,26 @@
 [tools]
-bun = "1.3.10"
+bun = "1.3.14"
 node = "22"
+
+[tasks.install]
+description = "Install dependencies and set up git hooks"
+run = ["bun install", "mise run install-hooks"]
+
+[tasks."install-hooks"]
+description = "Point git at the tracked hooks directory"
+run = "git config core.hooksPath hooks/"
 
 [tasks.build]
 description = "Compile TypeScript"
 run = "bun run build"
 
 [tasks.dev]
-description = "Start server in development mode (auto-restart on changes)"
-run = "bun --watch src/index.ts"
+description = "Watch mode (recompile on changes)"
+run = "bun run dev"
 
 [tasks.start]
-description = "Start server"
-run = "bun src/index.ts"
+description = "Start MCP server"
+run = "node dist/cli.js mcp"
 
 [tasks.clean]
 description = "Remove build artifacts"
@@ -20,20 +28,40 @@ run = "rm -rf dist"
 
 [tasks.inspect]
 description = "Open MCP Inspector to test the server interactively"
-run = "bunx @modelcontextprotocol/inspector bun src/index.ts"
+run = "bunx @modelcontextprotocol/inspector node dist/cli.js mcp"
 
 [tasks.test]
 description = "Run unit tests"
-run = "bun test tests/parser.test.ts tests/tools.test.ts tests/shim.test.ts"
+run = "bun run test"
+
+[tasks."test:watch"]
+description = "Run tests in watch mode"
+run = "bun run test:watch"
 
 [tasks."test:integration"]
 description = "Run integration tests against the real DSBmobile API (requires DSB_USERNAME and DSB_PASSWORD)"
-run = "bun test tests/api.integration.test.ts"
+run = "bun run test -- tests/api.integration.test.ts"
+
+[tasks.typecheck]
+description = "Type-check without emitting files"
+run = "bun run typecheck"
 
 [tasks.lint]
-description = "Run ESLint and Prettier checks"
-run = "bunx eslint src tests bin"
+description = "Run ESLint"
+run = "bun run lint"
 
 [tasks."lint:fix"]
-description = "Auto-fix ESLint and Prettier issues"
-run = "bunx eslint src tests bin --fix"
+description = "Auto-fix ESLint issues"
+run = "bun run lint:fix"
+
+[tasks.format]
+description = "Format all files with Prettier"
+run = "bun run format"
+
+[tasks."format:check"]
+description = "Check formatting without writing"
+run = "bun run format:check"
+
+[tasks.markdownlint]
+description = "Lint markdown files"
+run = "bun run markdownlint"
