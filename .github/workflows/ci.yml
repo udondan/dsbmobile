@@ -52,6 +52,9 @@ jobs:
       - run: bun run format:check
       - run: bun run markdownlint
       - run: bun run test
+        env:
+          DSB_USERNAME: ${{ secrets.DSB_USERNAME }}
+          DSB_PASSWORD: ${{ secrets.DSB_PASSWORD }}
 
   required:
     runs-on: ubuntu-latest
