@@ -52,6 +52,12 @@ jobs:
       - run: bun run format:check
       - run: bun run markdownlint
       - run: bun run test
+      - name: Run integration tests
+        run: bun run test -- tests/api.integration.test.ts
+        env:
+          DSB_USERNAME: ${{ secrets.DSB_USERNAME }}
+          DSB_PASSWORD: ${{ secrets.DSB_PASSWORD }}
+          DSB_CLASS: ${{ secrets.DSB_CLASS }}
 
   required:
     runs-on: ubuntu-latest

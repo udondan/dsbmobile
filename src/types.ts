@@ -80,20 +80,14 @@ export interface SubstitutionEntry {
 }
 
 /**
- * A fully parsed substitution plan page
+ * A substitution plan for a single date, merging all pages for that day
  */
 export interface SubstitutionPlan {
-  /** Plan title including date (e.g., "V-Homepage heute - subst_001") */
-  title: string;
-  /** Date string from the plan (e.g., "20.3.2026 Freitag (Seite 1 / 8)") */
-  planDate: string;
+  /** ISO date string (e.g., "2026-03-20") */
+  date: string;
   /** Last updated timestamp */
   lastUpdated: string;
-  /** URL the plan was fetched from */
-  url: string;
-  /** Affected classes */
-  affectedClasses: string;
-  /** All substitution entries */
+  /** All substitution entries for this date */
   entries: SubstitutionEntry[];
 }
 

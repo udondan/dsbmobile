@@ -1,40 +1,28 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { describe, expect, test } from 'vitest';
-import { parseSubstitutionHtml } from '../src/services/dsbmobile.js';
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import axios from 'axios';
+import { DsbmobileClient, parseSubstitutionHtml } from '../src/services/dsbmobile.js';
 import type { SubstitutionPlan } from '../src/types.js';
 
 const fixtureHtml = new TextDecoder('windows-1252').decode(
   readFileSync(path.join(fileURLToPath(new URL('.', import.meta.url)), 'fixtures/subst_001.htm')),
 );
 
-function parse(
-  html: string,
-  title = 'Test',
-  date = '01.01.2026 00:00',
-  url = 'http://example.com',
-): SubstitutionPlan {
-  return parseSubstitutionHtml(html, title, date, url);
+function parse(html: string, lastUpdated = '01.01.2026 00:00'): SubstitutionPlan {
+  return parseSubstitutionHtml(html, lastUpdated);
 }
 
 describe('parseSubstitutionHtml', () => {
-  test('parses plan date correctly', () => {
+  test('parses plan date as ISO date string', () => {
     const plan = parse(fixtureHtml);
-    expect(plan.planDate).toBe('20.3.2026 Freitag (Seite 1 / 8)');
+    expect(plan.date).toBe('2026-03-20');
   });
 
-  test('passes through title and lastUpdated', () => {
-    const plan = parse(fixtureHtml, 'V-Homepage heute', '20.03.2026 10:23');
-    expect(plan.title).toBe('V-Homepage heute');
+  test('passes through lastUpdated', () => {
+    const plan = parse(fixtureHtml, '20.03.2026 10:23');
     expect(plan.lastUpdated).toBe('20.03.2026 10:23');
-  });
-
-  test('parses affected classes', () => {
-    const plan = parse(fixtureHtml);
-    expect(plan.affectedClasses).toContain('10a');
-    expect(plan.affectedClasses).toContain('11a');
-    expect(plan.affectedClasses).toContain('12a');
   });
 
   test('parses correct number of substitution entries', () => {
@@ -89,5 +77,68 @@ describe('parseSubstitutionHtml', () => {
     </body></html>`;
     const plan = parse(emptyHtml);
     expect(plan.entries.length).toBe(0);
+  });
+});
+
+// Minimal single-entry HTML for a given date label (e.g. "20.3.2026 Freitag (Seite 1 / 2)")
+function makePageHtml(dateLabel: string): ArrayBuffer {
+  const html = [
+    `<div class="mon_title">${dateLabel}</div>`,
+    '<table>',
+    '<tr><td>10a</td></tr>',
+    '<tr><td>Vertretung</td><td>3</td><td>Aaa</td><td>SPO</td><td>A101</td><td>&nbsp;</td></tr>',
+    '</table>',
+  ].join('');
+  return new TextEncoder().encode(html).buffer;
+}
+
+describe('getSubstitutions - page merging', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  test('merges multiple pages with the same date into one plan', async () => {
+    const client = new DsbmobileClient({ username: 'u', password: 'p' });
+    vi.spyOn(client, 'getTimetables').mockResolvedValue([
+      { id: '1', title: 'Page 1', date: '20.03.2026 10:00', url: 'http://example.com/p1' },
+      { id: '2', title: 'Page 2', date: '20.03.2026 10:00', url: 'http://example.com/p2' },
+    ]);
+    vi.spyOn(axios, 'get').mockResolvedValue({
+      data: makePageHtml('20.3.2026 Freitag (Seite 1 / 2)'),
+    });
+
+    const plans = await client.getSubstitutions();
+    expect(plans).toHaveLength(1);
+    expect(plans[0].date).toBe('2026-03-20');
+    expect(plans[0].entries).toHaveLength(2);
+  });
+
+  test('keeps plans for different dates separate', async () => {
+    const client = new DsbmobileClient({ username: 'u', password: 'p' });
+    vi.spyOn(client, 'getTimetables').mockResolvedValue([
+      { id: '1', title: 'Day 1', date: '20.03.2026 10:00', url: 'http://example.com/p1' },
+      { id: '2', title: 'Day 2', date: '21.03.2026 10:00', url: 'http://example.com/p2' },
+    ]);
+    vi.spyOn(axios, 'get')
+      .mockResolvedValueOnce({ data: makePageHtml('20.3.2026 Freitag (Seite 1 / 1)') })
+      .mockResolvedValueOnce({ data: makePageHtml('21.3.2026 Samstag (Seite 1 / 1)') });
+
+    const plans = await client.getSubstitutions();
+    expect(plans).toHaveLength(2);
+    expect(plans[0].date).toBe('2026-03-20');
+    expect(plans[1].date).toBe('2026-03-21');
+  });
+
+  test('skips pages where date cannot be parsed', async () => {
+    const client = new DsbmobileClient({ username: 'u', password: 'p' });
+    vi.spyOn(client, 'getTimetables').mockResolvedValue([
+      { id: '1', title: 'Page 1', date: '20.03.2026 10:00', url: 'http://example.com/p1' },
+    ]);
+    vi.spyOn(axios, 'get').mockResolvedValue({
+      data: new TextEncoder().encode('<html><body>no date here</body></html>').buffer,
+    });
+
+    const plans = await client.getSubstitutions();
+    expect(plans).toHaveLength(0);
   });
 });

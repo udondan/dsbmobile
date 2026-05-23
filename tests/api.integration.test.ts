@@ -51,8 +51,7 @@ describe('DsbmobileClient (integration)', () => {
     const plans = await client.getSubstitutions();
     expect(plans.length).toBeGreaterThan(0);
     const first = plans[0];
-    expect(first.title).toBeTruthy();
-    expect(first.planDate).toBeTruthy();
+    expect(first.date).toBeTruthy();
     expect(Array.isArray(first.entries)).toBe(true);
     expect(first.entries.length).toBeGreaterThan(0);
   });

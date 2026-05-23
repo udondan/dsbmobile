@@ -64,11 +64,8 @@ async function callTool(
 
 function makePlan(entries: SubstitutionPlan['entries']): SubstitutionPlan {
   return {
-    title: 'V-Homepage heute (Seite 1)',
-    planDate: '20.3.2026 Freitag',
+    date: '2026-03-20',
     lastUpdated: '20.03.2026 10:23',
-    url: 'https://example.com/plan.htm',
-    affectedClasses: '10a, 11a',
     entries,
   };
 }
@@ -152,6 +149,26 @@ describe('get_substitutions tool', () => {
     expect(result.structuredContent.totalEntries).toBe(2);
     expect(result.text).toContain('10a');
     expect(result.text).toContain('11a');
+  });
+
+  test('structuredContent plan has date field and no legacy fields', async () => {
+    const plan = makePlan([entryA]);
+    const client = makeMockClient({ getSubstitutions: vi.fn(() => Promise.resolve([plan])) });
+    const result = await callTool(registerSubstitutionsTool, client);
+    const plans = result.structuredContent.plans as Record<string, unknown>[];
+    expect(plans).toHaveLength(1);
+    expect(plans[0].date).toBe('2026-03-20');
+    expect(plans[0]).not.toHaveProperty('title');
+    expect(plans[0]).not.toHaveProperty('planDate');
+    expect(plans[0]).not.toHaveProperty('affectedClasses');
+    expect(plans[0]).not.toHaveProperty('url');
+  });
+
+  test('text output uses ISO date as section heading', async () => {
+    const plan = makePlan([entryA]);
+    const client = makeMockClient({ getSubstitutions: vi.fn(() => Promise.resolve([plan])) });
+    const result = await callTool(registerSubstitutionsTool, client);
+    expect(result.text).toContain('## 2026-03-20');
   });
 
   test('filters by className parameter', async () => {
