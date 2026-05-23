@@ -7,8 +7,8 @@ description = "Install dependencies and set up git hooks"
 run = ["bun install", "mise run install-hooks"]
 
 [tasks."install-hooks"]
-description = "Symlink tracked hooks into .git/hooks"
-run = "ln -sf ../../hooks/pre-commit .git/hooks/pre-commit"
+description = "Point git at the tracked hooks directory"
+run = "git config core.hooksPath hooks/"
 
 [tasks.build]
 description = "Compile TypeScript"
