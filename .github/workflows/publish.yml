@@ -29,4 +29,6 @@ jobs:
       - run: bun run test
 
       - name: Publish
-        run: npm publish --access public --provenance
+        run: npm publish --access public --provenance --verbose
+        env:
+          NPM_CONFIG_LOGLEVEL: http
