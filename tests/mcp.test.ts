@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import type { DsbmobileClient } from '../src/services/dsbmobile.js';
 
 const registeredTools: string[] = [];
@@ -34,8 +34,13 @@ function makeMockClient(): DsbmobileClient {
 }
 
 describe('startMcpServer', () => {
-  test('registers all 4 tools', async () => {
+  beforeEach(() => {
     registeredTools.length = 0;
+    mockRegisterTool.mockClear();
+    mockConnect.mockClear();
+  });
+
+  test('registers all 4 tools', async () => {
     const { startMcpServer } = await import('../src/mcp.js');
     const client = makeMockClient();
     await startMcpServer(client);
@@ -48,7 +53,6 @@ describe('startMcpServer', () => {
   });
 
   test('creates server with name "dsbmobile"', async () => {
-    mockRegisterTool.mockClear();
     const { startMcpServer } = await import('../src/mcp.js');
     const client = makeMockClient();
     await startMcpServer(client);
@@ -58,7 +62,6 @@ describe('startMcpServer', () => {
   });
 
   test('creates server with a semver version', async () => {
-    registeredTools.length = 0;
     const { startMcpServer } = await import('../src/mcp.js');
     const client = makeMockClient();
     await startMcpServer(client);
@@ -68,7 +71,6 @@ describe('startMcpServer', () => {
   });
 
   test('connects the server to a transport', async () => {
-    mockConnect.mockClear();
     const { startMcpServer } = await import('../src/mcp.js');
     const client = makeMockClient();
     await startMcpServer(client);
