@@ -26,6 +26,8 @@ jobs:
 
       - run: bun install --frozen-lockfile
       - run: bun run build
+      - run: bun run typecheck
+      - run: bun run test
 
       - name: Publish
         run: npm publish --access public --provenance
