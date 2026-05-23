@@ -4,6 +4,8 @@
       "Skill(address-pr-comments)",
       "Skill(address-pr-comments:*)",
 
+      "Bash(ln -sf \"$\\(pwd\\)/../../../../../../.env\" .env)",
+
       "Bash(mise run *)",
       "Bash(mise exec *)",
       "Bash(mise trust *)",
