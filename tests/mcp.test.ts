@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 import type { DsbmobileClient } from '../src/services/dsbmobile.js';
 
 const registeredTools: string[] = [];
-const mockConnect = vi.fn().mockResolvedValue();
+const mockConnect = vi.fn().mockImplementation(() => Promise.resolve());
 const mockRegisterTool = vi.fn((name: string) => {
   registeredTools.push(name);
 });
