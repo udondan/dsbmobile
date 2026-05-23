@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { DsbmobileClient } from '../src/services/dsbmobile.js';
 import { registerDocumentsTool } from '../src/tools/documents.js';
@@ -134,6 +134,10 @@ describe('get_timetables tool', () => {
 // --- Substitutions tool ---
 
 describe('get_substitutions tool', () => {
+  beforeEach(() => {
+    delete process.env.DSB_CLASS;
+  });
+
   test('returns message when no plans available', async () => {
     const client = makeMockClient();
     const result = await callTool(registerSubstitutionsTool, client);

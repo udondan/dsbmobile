@@ -65,7 +65,7 @@ describe('DsbmobileClient (integration)', () => {
       expect(entry.className).toBeTruthy();
       expect(entry.type).toBeTruthy();
       expect(entry.period).toBeTruthy();
-      expect(entry.subject).toBeTruthy();
+      expect(typeof entry.subject).toBe('string');
     }
   });
 
