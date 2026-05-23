@@ -65,7 +65,7 @@ program
 program
   .command('substitutions')
   .description('Fetch substitution plans (Vertretungspläne) as JSON')
-  .option('--class <name>', 'Filter by class name (e.g. 05b). Defaults to DSB_CLASS env var.')
+  .option('--class <name>', `Filter by class name (e.g. 05b). Defaults to ${ENV_CLASS} env var.`)
   .action(async (options: { class?: string }) => {
     const client = loadClient();
     const plans = await client.getSubstitutions();
