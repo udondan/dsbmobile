@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import * as sdk from '../dist/index.js';
+import * as sdk from '../src/index.js';
 
 describe('SDK exports', () => {
   test('DsbmobileClient is exported as a constructor', () => {
