@@ -24,7 +24,7 @@ describe('SDK exports', () => {
     expect(typeof sdk.parseSubstitutionHtml).toBe('function');
   });
 
-  test('no server bootstrap runs on import (index is a module, not an executable)', () => {
+  test('startMcpServer is not part of the public SDK surface', () => {
     expect(sdk).not.toHaveProperty('startMcpServer');
   });
 });

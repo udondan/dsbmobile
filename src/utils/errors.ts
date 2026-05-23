@@ -59,5 +59,5 @@ export function createCredentialError(missingVariable: string): string {
  * Creates an error message for authentication failure (empty token response).
  */
 export function createAuthError(): string {
-  return 'Error: Authentication failed. DSBmobile rejected the provided credentials. Please verify they are correct.';
+  return 'Error: Authentication failed. DSBmobile rejected the provided credentials. Please verify your credentials are correct.';
 }
