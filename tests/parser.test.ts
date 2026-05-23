@@ -1,11 +1,12 @@
 import { describe, expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { parseSubstitutionHtml } from '../src/services/dsbmobile.js';
 import type { SubstitutionPlan } from '../src/types.js';
 
 const fixtureHtml = new TextDecoder('windows-1252').decode(
-  readFileSync(path.join(import.meta.dirname, 'fixtures/subst_001.htm')),
+  readFileSync(path.join(fileURLToPath(new URL('.', import.meta.url)), 'fixtures/subst_001.htm')),
 );
 
 function parse(
