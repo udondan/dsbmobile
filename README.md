@@ -183,12 +183,10 @@ Lädt und parst alle Vertretungsplan-Seiten und gibt strukturierte Einträge zur
 
 - `className` (optional): Klassenfilter, z. B. `07b` oder `Q2_Kra`. Groß-/Kleinschreibung wird ignoriert. Standardmäßig wird `DSB_CLASS` verwendet, falls gesetzt.
 
-**Rückgabe**: Liste von Plänen, jeweils mit:
+**Rückgabe**: Liste von Plänen (ein Objekt pro Tag), jeweils mit:
 
-- `title`: Planname
-- `planDate`: Datum laut Plan (z. B. „20.3.2026 Freitag (Seite 1 / 8)")
+- `date`: Datum im ISO-Format (z. B. `2026-03-20`)
 - `lastUpdated`: Zeitstempel der letzten Aktualisierung
-- `affectedClasses`: Kommagetrennte Liste betroffener Klassen
 - `entries`: Liste der Vertretungseinträge, jeweils mit:
   - `className`: Klasse (z. B. `07b`, `Q2_Kra`)
   - `type`: Art der Vertretung (z. B. `Vertretung`, `Statt-Vertretung`, `Entfall`)
