@@ -2,13 +2,13 @@
 
 ## Paths
 
-Never use absolute paths — not in shell commands, not in config files, not in settings, not anywhere. Always use relative paths from the current working directory. The shell is already in the right directory.
+Never use user-specific or host-specific absolute paths — not in shell commands, not in config files, not in settings, not anywhere. Always use relative paths from the current working directory. The shell is already in the right directory.
 
 - Git: `git status`, never `git -C /absolute/path status`
 - Permissions: `Read(**)`, never `Read(//Users/someone/.../**)`
 - CLI: `./dist/cli.js`, never `/Users/someone/.../dist/cli.js`
 
-Any time you find yourself typing `/Users/` or any other hardcoded absolute path — stop and use a relative path instead.
+Any time you find yourself typing `/Users/` or any other user/host-specific absolute path — stop and use a relative path instead. Standard system paths like `/tmp` are acceptable in tool configuration where relative paths are not meaningful.
 
 ## Package manager
 
