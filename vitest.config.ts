@@ -1,10 +1,12 @@
 import { defineConfig } from 'vitest/config';
 
-try {
-  process.loadEnvFile('.env');
-} catch (error) {
-  if (!(error instanceof TypeError) && (error as NodeJS.ErrnoException).code !== 'ENOENT') {
-    throw error;
+if (typeof process.loadEnvFile === 'function') {
+  try {
+    process.loadEnvFile('.env');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      throw error;
+    }
   }
 }
 
