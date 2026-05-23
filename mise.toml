@@ -34,6 +34,10 @@ run = "bunx @modelcontextprotocol/inspector node dist/cli.js mcp"
 description = "Run unit tests"
 run = "bun run test"
 
+[tasks."test:watch"]
+description = "Run tests in watch mode"
+run = "bun run test:watch"
+
 [tasks."test:integration"]
 description = "Run integration tests against the real DSBmobile API (requires DSB_USERNAME and DSB_PASSWORD)"
 run = "bun run test -- tests/api.integration.test.ts"
