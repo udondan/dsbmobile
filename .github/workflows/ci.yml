@@ -27,6 +27,7 @@ jobs:
               - eslint.config.js
               - .prettierrc.json
               - .markdownlint.json
+              - vitest.config.ts
               - .github/workflows/ci.yml
 
   test:
