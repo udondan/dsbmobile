@@ -7,3 +7,5 @@ dist/
 .vibe/
 opencode.jsonc
 constitution.md
+.claude/*
+!.claude/settings.json

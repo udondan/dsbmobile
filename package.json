@@ -54,7 +54,7 @@
     "lint:fix": "eslint --fix src/ tests/",
     "format": "prettier --write src/ tests/",
     "format:check": "prettier --check src/ tests/",
-    "markdownlint": "markdownlint-cli2 '**/*.md' '#node_modules' '#CHANGELOG.md'"
+    "markdownlint": "markdownlint-cli2 '**/*.md' '#node_modules' '#.claude' '#.vibe' '#CHANGELOG.md'"
   },
   "engines": {
     "node": ">=22"

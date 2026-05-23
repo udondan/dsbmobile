@@ -26,9 +26,15 @@ run = "node dist/cli.js mcp"
 description = "Remove build artifacts"
 run = "rm -rf dist"
 
+[tasks.cli]
+description = "Run CLI with credentials loaded from .env (e.g. mise run cli -- substitutions)"
+shell = "bash -c"
+run = "set -a && source .env && set +a && node dist/cli.js $@"
+
 [tasks.inspect]
 description = "Open MCP Inspector to test the server interactively"
-run = "bunx @modelcontextprotocol/inspector node dist/cli.js mcp"
+shell = "bash -c"
+run = "set -a && source .env && set +a && bunx @modelcontextprotocol/inspector node dist/cli.js mcp"
 
 [tasks.test]
 description = "Run unit tests"
