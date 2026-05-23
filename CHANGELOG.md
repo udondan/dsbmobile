@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/udondan/dsbmobile/compare/v1.1.0...v1.2.0) (2026-05-23)
+
+
+### Features
+
+* merge substitution plan pages by date ([#9](https://github.com/udondan/dsbmobile/issues/9)) ([7e493dc](https://github.com/udondan/dsbmobile/commit/7e493dc0fcde5d4289a0dfa9050c65f6d4523c27))
+
 ## [1.1.0](https://github.com/udondan/dsbmobile/compare/v1.0.0...v1.1.0) (2026-05-23)
 
 
