@@ -1,0 +1,67 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(address-pr-comments)",
+      "Skill(address-pr-comments:*)",
+
+      "Bash(mise run *)",
+      "Bash(mise exec *)",
+      "Bash(mise trust *)",
+
+      "Bash(bun run *)",
+      "Bash(bun test *)",
+      "Bash(bun install --frozen-lockfile *)",
+
+      "Bash(bunx vitest *)",
+      "Bash(bunx eslint *)",
+      "Bash(bunx prettier *)",
+      "Bash(bunx tsc *)",
+
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push)",
+      "Bash(git push *)",
+      "Bash(git fetch *)",
+      "Bash(git merge *)",
+      "Bash(git rebase *)",
+      "Bash(git log *)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git rev-parse *)",
+      "Bash(git branch *)",
+      "Bash(git checkout *)",
+      "Bash(git cherry-pick *)",
+      "Bash(git rm *)",
+      "Bash(git pull *)",
+      "Bash(git worktree *)",
+
+      "Bash(gh pr *)",
+      "Bash(gh run *)",
+      "Bash(gh issue *)",
+      "Bash(gh api *)",
+
+      "Bash(gh-pr-next-action *)",
+      "Bash(gh-pr-reply *)",
+      "Bash(gh-pr-threads *)",
+      "Bash(gh-resolve-thread *)",
+      "Bash(gh-pr-request-review *)",
+
+      "Bash(jq *)",
+
+      "Bash(./dist/cli.js *)",
+      "Bash(node dist/cli.js *)",
+
+      "Bash(echo *)",
+
+      "Bash(cat)",
+      "Bash(cat *)",
+      "Bash(awk *)",
+      "Bash(find * )",
+      "Bash(sed *)",
+
+      "Read(//tmp/**)",
+      "Read(//private/tmp/**)"
+    ],
+    "additionalDirectories": ["/tmp", "/private/tmp"]
+  }
+}
