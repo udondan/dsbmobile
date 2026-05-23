@@ -343,7 +343,7 @@ export function parseSubstitutionHtml(html: string, lastUpdated: string): Substi
   const rawDate = dateMatch ? decodeHtmlEntities(stripHtmlTags(dateMatch[1])) : '';
   const datePartMatch = /^(\d{1,2})\.(\d{1,2})\.(\d{4})/.exec(rawDate);
   if (!datePartMatch) {
-    throw new Error(`Could not parse plan date from HTML`);
+    throw new Error(`Could not parse plan date from HTML: "${rawDate}"`);
   }
   const date = `${datePartMatch[3]}-${datePartMatch[2].padStart(2, '0')}-${datePartMatch[1].padStart(2, '0')}`;
 
