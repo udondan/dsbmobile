@@ -8,6 +8,8 @@ on:
 jobs:
   changes:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
     if: github.event_name == 'pull_request'
     outputs:
       src: ${{ steps.filter.outputs.src }}
