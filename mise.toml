@@ -16,7 +16,7 @@ run = "bun run build"
 
 [tasks.dev]
 description = "Watch mode (recompile on changes)"
-run = "tsc --watch"
+run = "bun run dev"
 
 [tasks.start]
 description = "Start MCP server"
