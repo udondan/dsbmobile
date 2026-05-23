@@ -1,5 +1,22 @@
 # Agent Guidelines for @udondan/dsbmobile
 
+## Paths
+
+Never use absolute paths — not in shell commands, not in config files, not in settings, not anywhere. Always use relative paths from the current working directory. The shell is already in the right directory.
+
+- Git: `git status`, never `git -C /absolute/path status`
+- Permissions: `Read(**)`, never `Read(//Users/someone/.../**)`
+- CLI: `./dist/cli.js`, never `/Users/someone/.../dist/cli.js`
+
+Any time you find yourself typing `/Users/` or any other hardcoded absolute path — stop and use a relative path instead.
+
+## Package manager
+
+This project uses **mise** as the task runner and **Bun** as the package manager.
+Always use `mise run <task>` to run commands — this ensures the correct Node/Bun
+versions are active. Never use `npm` or `npx`. Use `bun`/`bunx` directly only
+when there is no corresponding mise task.
+
 ## Project Overview
 
 A three-interface package for the DSBmobile school substitution service. Written in TypeScript, compiled to `dist/` with `tsc`, and runs on Node.js ≥ 22.
@@ -8,53 +25,40 @@ A three-interface package for the DSBmobile school substitution service. Written
 - **CLI** — `dsbmobile` command with subcommands: `mcp`, `substitutions`, `timetables`, `news`, `documents`
 - **MCP server** — `dsbmobile mcp` exposes 4 tools: `get_substitutions`, `get_documents`, `get_news`, `get_timetables`
 
-## Build / Lint / Test Commands
-
-The primary task runner is `mise`. All tasks can also be run directly.
-
-### Common tasks
+## Commands
 
 ```sh
-# Build (TypeScript compile to dist/)
-mise run build
-bun run build
-
-# Development mode (recompile on changes)
-mise run dev
-
-# Start MCP server
-mise run start
-node dist/cli.js mcp
-
-# Lint
-mise run lint
-bunx eslint src/ tests/
-
-# Lint with auto-fix
-mise run lint:fix
-bunx eslint --fix src/ tests/
-
-# Open MCP Inspector (interactive tool tester)
-mise run inspect
+mise run install        # Install dependencies and set up git hooks
+mise run build          # Compile TypeScript → dist/
+mise run dev            # Watch mode — recompile on changes
+mise run start          # Start MCP server
+mise run test           # Run all tests (compiles first via pretest)
+mise run test:watch     # Run tests in watch mode
+mise run typecheck      # Type-check without emitting files
+mise run lint           # Run ESLint
+mise run lint:fix       # Auto-fix ESLint issues
+mise run format         # Format with Prettier
+mise run format:check   # Check formatting without writing
+mise run markdownlint   # Lint markdown files
+mise run inspect        # Open MCP Inspector (interactive tool tester)
 ```
 
-### Tests
+Run a single test file:
 
 ```sh
-# Run all unit tests (compiles first via pretest)
-mise run test
-bun run test
+mise exec -- bunx vitest run tests/parser.test.ts
+```
 
-# Run a single test file
-npx vitest run tests/parser.test.ts
-npx vitest run tests/tools.test.ts
+Run a single test by name pattern:
 
-# Run a single test by name pattern
-npx vitest run tests/parser.test.ts -t "parses plan date"
+```sh
+mise exec -- bunx vitest run tests/parser.test.ts -t "parses plan date"
+```
 
-# Run integration tests (requires live DSB credentials)
-DSB_USERNAME=your_user DSB_PASSWORD=your_pass npx vitest run tests/api.integration.test.ts
-DSB_USERNAME=... DSB_PASSWORD=... mise run test:integration
+Run integration tests (requires live DSB credentials):
+
+```sh
+DSB_USERNAME=your_user DSB_PASSWORD=your_pass mise run test:integration
 ```
 
 Note: `tests/shim.test.ts` verifies `dist/` output structure — it requires a prior `tsc` build, which `"pretest": "tsc"` handles automatically.
