@@ -1,7 +1,7 @@
-import { describe, expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { describe, expect, test } from 'vitest';
 import { parseSubstitutionHtml } from '../src/services/dsbmobile.js';
 import type { SubstitutionPlan } from '../src/types.js';
 

@@ -1,8 +1,8 @@
-import { describe, expect, test } from 'vitest';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { describe, expect, test } from 'vitest';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const indexFilePath = path.resolve(root, 'dist', 'index.js');

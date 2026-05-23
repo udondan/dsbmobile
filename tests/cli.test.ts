@@ -1,7 +1,7 @@
-import { describe, expect, test } from 'vitest';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { describe, expect, test } from 'vitest';
 
 const cliPath = path.resolve(fileURLToPath(new URL('..', import.meta.url)), 'dist', 'cli.js');
 
