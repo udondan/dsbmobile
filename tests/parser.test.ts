@@ -9,32 +9,19 @@ const fixtureHtml = new TextDecoder('windows-1252').decode(
   readFileSync(path.join(fileURLToPath(new URL('.', import.meta.url)), 'fixtures/subst_001.htm')),
 );
 
-function parse(
-  html: string,
-  title = 'Test',
-  date = '01.01.2026 00:00',
-  url = 'http://example.com',
-): SubstitutionPlan {
-  return parseSubstitutionHtml(html, title, date, url);
+function parse(html: string, date = '01.01.2026 00:00'): SubstitutionPlan {
+  return parseSubstitutionHtml(html, date);
 }
 
 describe('parseSubstitutionHtml', () => {
-  test('parses plan date correctly', () => {
+  test('parses plan date as ISO date string', () => {
     const plan = parse(fixtureHtml);
-    expect(plan.planDate).toBe('20.3.2026 Freitag (Seite 1 / 8)');
+    expect(plan.date).toBe('2026-03-20');
   });
 
-  test('passes through title and lastUpdated', () => {
-    const plan = parse(fixtureHtml, 'V-Homepage heute', '20.03.2026 10:23');
-    expect(plan.title).toBe('V-Homepage heute');
+  test('passes through lastUpdated', () => {
+    const plan = parse(fixtureHtml, '20.03.2026 10:23');
     expect(plan.lastUpdated).toBe('20.03.2026 10:23');
-  });
-
-  test('parses affected classes', () => {
-    const plan = parse(fixtureHtml);
-    expect(plan.affectedClasses).toContain('10a');
-    expect(plan.affectedClasses).toContain('11a');
-    expect(plan.affectedClasses).toContain('12a');
   });
 
   test('parses correct number of substitution entries', () => {

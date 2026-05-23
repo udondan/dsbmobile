@@ -64,11 +64,8 @@ async function callTool(
 
 function makePlan(entries: SubstitutionPlan['entries']): SubstitutionPlan {
   return {
-    title: 'V-Homepage heute (Seite 1)',
-    planDate: '20.3.2026 Freitag',
+    date: '2026-03-20',
     lastUpdated: '20.03.2026 10:23',
-    url: 'https://example.com/plan.htm',
-    affectedClasses: '10a, 11a',
     entries,
   };
 }

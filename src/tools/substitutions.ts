@@ -18,11 +18,9 @@ export function registerSubstitutionsTool(server: McpServer, client: DsbmobileCl
       description: `Fetches and parses the actual substitution plan (Vertretungsplan) pages from DSBmobile,
 returning structured substitution entries for each class.
 
-Returns a list of substitution plans (one per page), each containing:
-- title: Plan name (e.g., "V-Homepage heute - subst_001 (Seite 1)")
-- planDate: Date shown on the plan (e.g., "20.3.2026 Freitag (Seite 1 / 8)")
+Returns a list of substitution plans (one per day), each containing:
+- date: ISO date string (e.g., "2026-03-20")
 - lastUpdated: When the plan was last updated
-- affectedClasses: Comma-separated list of affected class names
 - entries: Array of substitution entries, each with:
   - className: The class (e.g., "05b", "Q2_Kra")
   - type: Substitution type (e.g., "Vertretung", "Statt-Vertretung", "Entfall")
@@ -150,15 +148,7 @@ function formatSubstitutions(plans: SubstitutionPlan[], filter?: string): string
   for (const plan of plans) {
     if (plan.entries.length === 0) continue;
 
-    lines.push(
-      `## ${plan.title}`,
-      `**Date**: ${plan.planDate}`,
-      `**Last Updated**: ${plan.lastUpdated}`,
-    );
-    if (plan.affectedClasses) {
-      lines.push(`**Affected Classes**: ${plan.affectedClasses}`);
-    }
-    lines.push('');
+    lines.push(`## ${plan.date}`, `**Last Updated**: ${plan.lastUpdated}`, '');
 
     // Group entries by class
     const byClass = new Map<string, SubstitutionEntry[]>();
