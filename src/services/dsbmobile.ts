@@ -260,7 +260,7 @@ export class DsbmobileClient {
    * This fetches the actual HTML content of each timetable page and parses the
    * substitution table into structured data.
    *
-   * @returns Array of parsed substitution plans (one per HTML page)
+   * @returns Array of parsed substitution plans (one per calendar day, pages merged)
    * @throws Error if authentication fails or the request fails
    */
   async getSubstitutions(): Promise<SubstitutionPlan[]> {
@@ -279,6 +279,7 @@ export class DsbmobileClient {
           // The HTML is encoded in iso-8859-1/windows-1252 — decode it properly
           const htmlText = new TextDecoder('windows-1252').decode(response.data);
           const plan = parseSubstitutionHtml(htmlText, timetable.date);
+          if (!plan.date) continue;
           const existing = merged.get(plan.date);
           if (existing) {
             existing.entries.push(...plan.entries);
