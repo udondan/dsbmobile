@@ -4,7 +4,7 @@
   "description": "SDK, CLI, and MCP server for DSBmobile — access German school substitution plans (Vertretungspläne)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/udondan/dsbmobile-mcp.git"
+    "url": "https://github.com/udondan/dsbmobile.git"
   },
   "author": {
     "name": "Daniel Schroeder",
