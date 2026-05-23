@@ -279,7 +279,6 @@ export class DsbmobileClient {
           // The HTML is encoded in iso-8859-1/windows-1252 — decode it properly
           const htmlText = new TextDecoder('windows-1252').decode(response.data);
           const plan = parseSubstitutionHtml(htmlText, timetable.date);
-          if (!plan.date) continue;
           const existing = merged.get(plan.date);
           if (existing) {
             existing.entries.push(...plan.entries);
@@ -343,9 +342,10 @@ export function parseSubstitutionHtml(html: string, lastUpdated: string): Substi
   const dateMatch = /class="mon_title">(.*?)<\/div>/.exec(html);
   const rawDate = dateMatch ? decodeHtmlEntities(stripHtmlTags(dateMatch[1])) : '';
   const datePartMatch = /^(\d{1,2})\.(\d{1,2})\.(\d{4})/.exec(rawDate);
-  const date = datePartMatch
-    ? `${datePartMatch[3]}-${datePartMatch[2].padStart(2, '0')}-${datePartMatch[1].padStart(2, '0')}`
-    : '';
+  if (!datePartMatch) {
+    throw new Error(`Could not parse plan date from HTML`);
+  }
+  const date = `${datePartMatch[3]}-${datePartMatch[2].padStart(2, '0')}-${datePartMatch[1].padStart(2, '0')}`;
 
   // Parse all table rows
   const entries: SubstitutionEntry[] = [];
