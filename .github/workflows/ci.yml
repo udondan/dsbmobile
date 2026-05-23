@@ -55,6 +55,7 @@ jobs:
         env:
           DSB_USERNAME: ${{ secrets.DSB_USERNAME }}
           DSB_PASSWORD: ${{ secrets.DSB_PASSWORD }}
+          DSB_CLASS: ${{ secrets.DSB_CLASS }}
 
   required:
     runs-on: ubuntu-latest
