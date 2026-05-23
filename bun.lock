@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "dsbmobile-mcp-server",
+      "name": "@udondan/dsbmobile",
       "dependencies": {
         "@modelcontextprotocol/sdk": "1.29.0",
         "axios": "1.16.1",

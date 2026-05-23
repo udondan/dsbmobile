@@ -222,8 +222,8 @@ Listet alle verfügbaren Dokumente und Dateien auf.
 
 ```bash
 # Repository klonen
-git clone https://github.com/udondan/dsbmobile-mcp.git
-cd dsbmobile-mcp
+git clone https://github.com/udondan/dsbmobile.git
+cd dsbmobile
 
 # Abhängigkeiten installieren
 bun install
