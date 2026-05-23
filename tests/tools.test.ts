@@ -151,6 +151,26 @@ describe('get_substitutions tool', () => {
     expect(result.text).toContain('11a');
   });
 
+  test('structuredContent plan has date field and no legacy fields', async () => {
+    const plan = makePlan([entryA]);
+    const client = makeMockClient({ getSubstitutions: vi.fn(() => Promise.resolve([plan])) });
+    const result = await callTool(registerSubstitutionsTool, client);
+    const plans = result.structuredContent.plans as Record<string, unknown>[];
+    expect(plans).toHaveLength(1);
+    expect(plans[0].date).toBe('2026-03-20');
+    expect(plans[0]).not.toHaveProperty('title');
+    expect(plans[0]).not.toHaveProperty('planDate');
+    expect(plans[0]).not.toHaveProperty('affectedClasses');
+    expect(plans[0]).not.toHaveProperty('url');
+  });
+
+  test('text output uses ISO date as section heading', async () => {
+    const plan = makePlan([entryA]);
+    const client = makeMockClient({ getSubstitutions: vi.fn(() => Promise.resolve([plan])) });
+    const result = await callTool(registerSubstitutionsTool, client);
+    expect(result.text).toContain('## 2026-03-20');
+  });
+
   test('filters by className parameter', async () => {
     const plan = makePlan([entryA, entryB]);
     const client = makeMockClient({ getSubstitutions: vi.fn(() => Promise.resolve([plan])) });
