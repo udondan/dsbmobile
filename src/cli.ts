@@ -34,8 +34,8 @@ function loadClient(): DsbmobileClient {
   if (missing.length > 0) {
     console.error(
       `Error: Required environment variables not set: ${missing.join(', ')}\n` +
-        `  export DSB_USERNAME=your_username\n` +
-        `  export DSB_PASSWORD=your_password`,
+        `  export ${ENV_USERNAME}=your_username\n` +
+        `  export ${ENV_PASSWORD}=your_password`,
     );
     process.exit(1);
   }

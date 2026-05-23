@@ -8,7 +8,7 @@ const cliPath = path.resolve(fileURLToPath(new URL('..', import.meta.url)), 'dis
 function runCli(arguments_: string[], environment: Record<string, string> = {}) {
   return spawnSync('node', [cliPath, ...arguments_], {
     encoding: 'utf8',
-    env: { PATH: process.env.PATH, ...environment },
+    env: { ...process.env, ...environment },
     timeout: 5000,
   });
 }
