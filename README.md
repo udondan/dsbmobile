@@ -214,7 +214,8 @@ Listet alle verfügbaren Dokumente und Dateien auf.
 
 ## Sicherheit
 
-- Zugangsdaten werden ausschließlich über Umgebungsvariablen übergeben und nie im Code hinterlegt
+- **CLI und MCP-Server**: Zugangsdaten werden ausschließlich über Umgebungsvariablen übergeben und nie im Code hinterlegt
+- **SDK**: Zugangsdaten werden explizit als `DsbmobileConfig`-Objekt im Konstruktor übergeben – nie hartcodiert oder aus Umgebungsvariablen gelesen
 - Zugangsdaten erscheinen weder in Logs noch in Fehlermeldungen
 - Es werden keine sensiblen Daten auf der Festplatte gespeichert
 - Der Server ist schreibgeschützt – er kann keine Daten auf DSBmobile verändern
