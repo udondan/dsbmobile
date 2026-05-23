@@ -53,7 +53,7 @@ jobs:
       - run: bun run markdownlint
       - run: bun run test
       - name: Run integration tests
-        run: bunx vitest run tests/api.integration.test.ts
+        run: bun run test -- tests/api.integration.test.ts
         env:
           DSB_USERNAME: ${{ secrets.DSB_USERNAME }}
           DSB_PASSWORD: ${{ secrets.DSB_PASSWORD }}
