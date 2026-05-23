@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { DsbmobileClient } from '../src/services/dsbmobile.js';
+import { ENV_CLASS } from '../src/constants.js';
 import { registerDocumentsTool } from '../src/tools/documents.js';
 import { registerNewsTool } from '../src/tools/news.js';
 import { registerSubstitutionsTool } from '../src/tools/substitutions.js';
@@ -135,7 +136,7 @@ describe('get_timetables tool', () => {
 
 describe('get_substitutions tool', () => {
   beforeEach(() => {
-    delete process.env.DSB_CLASS;
+    delete process.env[ENV_CLASS];
   });
 
   test('returns message when no plans available', async () => {
@@ -178,23 +179,23 @@ describe('get_substitutions tool', () => {
   });
 
   test('uses DSB_CLASS env var as default filter', async () => {
-    process.env.DSB_CLASS = '11a';
+    process.env[ENV_CLASS] = '11a';
     const plan = makePlan([entryA, entryB]);
     const client = makeMockClient({ getSubstitutions: vi.fn(() => Promise.resolve([plan])) });
     const result = await callTool(registerSubstitutionsTool, client);
     expect(result.structuredContent.totalEntries).toBe(1);
     expect(result.text).toContain('11a');
-    delete process.env.DSB_CLASS;
+    delete process.env[ENV_CLASS];
   });
 
   test('className param overrides DSB_CLASS env var', async () => {
-    process.env.DSB_CLASS = '11a';
+    process.env[ENV_CLASS] = '11a';
     const plan = makePlan([entryA, entryB]);
     const client = makeMockClient({ getSubstitutions: vi.fn(() => Promise.resolve([plan])) });
     const result = await callTool(registerSubstitutionsTool, client, { className: '10a' });
     expect(result.structuredContent.totalEntries).toBe(1);
     expect(result.text).toContain('10a');
-    delete process.env.DSB_CLASS;
+    delete process.env[ENV_CLASS];
   });
 });
 
