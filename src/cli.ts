@@ -106,7 +106,7 @@ program
 try {
   await program.parseAsync(process.argv);
 } catch (error: unknown) {
-  const message = (error as Error).message;
+  const message = error instanceof Error ? error.message : String(error);
   console.error(message.startsWith('Error:') ? message : `Error: ${message}`);
   process.exit(1);
 }
