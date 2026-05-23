@@ -53,7 +53,7 @@ describe('startMcpServer', () => {
     const client = makeMockClient();
     await startMcpServer(client);
 
-    const serverInstance = mockRegisterTool.mock.instances[0] as { name: string };
+    const serverInstance = mockRegisterTool.mock.contexts[0] as { name: string };
     expect(serverInstance.name).toBe('dsbmobile');
   });
 
@@ -63,8 +63,8 @@ describe('startMcpServer', () => {
     const client = makeMockClient();
     await startMcpServer(client);
 
-    const instances = vi.mocked(mockRegisterTool).mock.instances;
-    expect((instances[0] as { version: string }).version).toMatch(/^\d+\.\d+\.\d+/);
+    const contexts = mockRegisterTool.mock.contexts;
+    expect((contexts[0] as { version: string }).version).toMatch(/^\d+\.\d+\.\d+/);
   });
 
   test('connects the server to a transport', async () => {

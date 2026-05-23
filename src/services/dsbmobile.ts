@@ -40,8 +40,8 @@ function stripHtmlTags(s: string): string {
 /**
  * Client for the DSBmobile Mobile API.
  *
- * Authenticates using credentials from environment variables and provides
- * methods to fetch timetables, news, and documents.
+ * Accepts explicit credentials via {@link DsbmobileConfig} and provides
+ * methods to fetch timetables, news, documents, and substitution plans.
  *
  * The authentication token is cached in memory for the session lifetime.
  */

@@ -1,9 +1,10 @@
 import { describe, expect, test } from 'vitest';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
-const root = new URL('..', import.meta.url).pathname;
+const root = fileURLToPath(new URL('..', import.meta.url));
 const indexFilePath = path.resolve(root, 'dist', 'index.js');
 const cliFilePath = path.resolve(root, 'dist', 'cli.js');
 
