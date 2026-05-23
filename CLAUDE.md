@@ -79,6 +79,7 @@ Run `mise run lint:fix` to auto-format.
 - Always use explicit types; avoid `any`
 - Use `import type { ... }` for type-only imports
 - All imports use `.js` extension (even for `.ts` source files) — required by NodeNext ESM:
+
   ```ts
   import { DsbmobileClient } from '../services/dsbmobile.js';
   import type { SubstitutionPlan } from '../types.js';
@@ -199,7 +200,7 @@ HTML is parsed with regex + `matchAll` — no DOM parser or third-party HTML lib
 
 ## Project Structure
 
-```
+```text
 src/
   index.ts           # SDK entry point: exports DsbmobileClient + types
   cli.ts             # CLI entry point with shebang (commander)

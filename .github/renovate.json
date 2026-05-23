@@ -15,7 +15,23 @@
       "description": "Automerge devDependency patch and minor updates when CI passes",
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": ["minor", "patch"],
-      "automerge": true
+      "automerge": true,
+      "automergeStrategy": "squash",
+      "minimumReleaseAge": "3 days"
+    }
+  ],
+  "customManagers": [
+    {
+      "description": "Track Bun version in workflows and mise.toml",
+      "customType": "regex",
+      "fileMatch": ["^\\.github/workflows/.*\\.yml$", "^mise\\.toml$"],
+      "matchStrings": [
+        "bun-version:\\s*['\"]?(?<currentValue>[\\d.]+)['\"]?",
+        "bun\\s*=\\s*['\"](?<currentValue>[\\d.]+)['\"]"
+      ],
+      "depNameTemplate": "oven-sh/bun",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^bun-v(?<version>.*)$"
     }
   ]
 }

@@ -13,7 +13,6 @@ Node.js-Paket für den Zugriff auf [DSBmobile](https://www.dsbmobile.de) – die
 - [SDK](#sdk)
 - [CLI](#cli)
 - [MCP-Server](#mcp-server)
-- [Umgebungsvariablen](#umgebungsvariablen)
 - [Verfügbare MCP-Tools](#verfügbare-mcp-tools)
 - [Entwicklung](#entwicklung)
 - [Lizenz](#lizenz)
