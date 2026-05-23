@@ -1,11 +1,12 @@
-FROM oven/bun:1-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile --production
+RUN npm install --frozen-lockfile
 
-COPY bin/ ./bin/
+COPY tsconfig.json ./
 COPY src/ ./src/
+RUN npm run build && npm prune --omit=dev
 
-ENTRYPOINT ["bun", "src/index.ts"]
+ENTRYPOINT ["node", "dist/cli.js", "mcp"]

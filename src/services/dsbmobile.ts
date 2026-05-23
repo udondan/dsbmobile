@@ -4,8 +4,6 @@ import {
   DSB_APP_VERSION,
   DSB_BUNDLE_ID,
   DSB_OS_VERSION,
-  ENV_PASSWORD,
-  ENV_USERNAME,
   REQUEST_TIMEOUT_MS,
 } from '../constants.js';
 import type {
@@ -16,7 +14,12 @@ import type {
   SubstitutionPlan,
   TimetableEntry,
 } from '../types.js';
-import { createAuthError, createCredentialError, handleApiError } from '../utils/errors.js';
+import { createAuthError, handleApiError } from '../utils/errors.js';
+
+export interface DsbmobileConfig {
+  username: string;
+  password: string;
+}
 
 /** Decode common HTML entities and trim whitespace. */
 function decodeHtmlEntities(s: string): string {
@@ -48,19 +51,9 @@ export class DsbmobileClient {
   private readonly http: AxiosInstance;
   private token: string | undefined;
 
-  constructor() {
-    const username = process.env[ENV_USERNAME];
-    const password = process.env[ENV_PASSWORD];
-
-    if (!username) {
-      throw new Error(createCredentialError(ENV_USERNAME));
-    }
-    if (!password) {
-      throw new Error(createCredentialError(ENV_PASSWORD));
-    }
-
-    this.username = username;
-    this.password = password;
+  constructor(config: DsbmobileConfig) {
+    this.username = config.username;
+    this.password = config.password;
 
     this.http = axios.create({
       baseURL: DSB_API_BASE_URL,

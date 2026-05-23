@@ -4,7 +4,7 @@
  *
  * Run with: DSB_USERNAME=... DSB_PASSWORD=... mise run test:integration
  */
-import { beforeAll, describe, expect, test } from 'bun:test';
+import { beforeAll, describe, expect, test } from 'vitest';
 import { DsbmobileClient } from '../src/services/dsbmobile.js';
 
 const hasCredentials = Boolean(process.env.DSB_USERNAME) && Boolean(process.env.DSB_PASSWORD);
@@ -14,7 +14,10 @@ describe('DsbmobileClient (integration)', () => {
 
   beforeAll(() => {
     if (!hasCredentials) return;
-    client = new DsbmobileClient();
+    client = new DsbmobileClient({
+      username: process.env.DSB_USERNAME!,
+      password: process.env.DSB_PASSWORD!,
+    });
   });
 
   test.skipIf(!hasCredentials)('getTimetables returns at least one entry', async () => {
@@ -66,14 +69,8 @@ describe('DsbmobileClient (integration)', () => {
     }
   });
 
-  test.skipIf(!hasCredentials)('throws on invalid credentials', () => {
-    const originalUsername = process.env.DSB_USERNAME;
-    const originalPassword = process.env.DSB_PASSWORD;
-    process.env.DSB_USERNAME = 'invalid_user';
-    process.env.DSB_PASSWORD = 'invalid_pass';
-    const badClient = new DsbmobileClient();
-    process.env.DSB_USERNAME = originalUsername;
-    process.env.DSB_PASSWORD = originalPassword;
-    expect(badClient.getTimetables()).rejects.toThrow(/Error:/);
+  test.skipIf(!hasCredentials)('throws on invalid credentials', async () => {
+    const badClient = new DsbmobileClient({ username: 'invalid_user', password: 'invalid_pass' });
+    await expect(badClient.getTimetables()).rejects.toThrow(/Error:/);
   });
 });

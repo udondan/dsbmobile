@@ -1,33 +1,38 @@
-# Agent Guidelines for dsbmobile-mcp
+# Agent Guidelines for @udondan/dsbmobile
 
 ## Project Overview
 
-A Model Context Protocol (MCP) server for the DSBmobile school substitution service. Written in TypeScript, runs on Bun, and exposes 4 MCP tools: `get_substitutions`, `get_documents`, `get_news`, `get_timetables`.
+A three-interface package for the DSBmobile school substitution service. Written in TypeScript, compiled to `dist/` with `tsc`, and runs on Node.js ≥ 22.
+
+- **SDK** — importable library: `import { DsbmobileClient } from '@udondan/dsbmobile'`
+- **CLI** — `dsbmobile` command with subcommands: `mcp`, `substitutions`, `timetables`, `news`, `documents`
+- **MCP server** — `dsbmobile mcp` exposes 4 tools: `get_substitutions`, `get_documents`, `get_news`, `get_timetables`
 
 ## Build / Lint / Test Commands
 
-The primary task runner is `mise`. All tasks can also be run directly with `bun`.
+The primary task runner is `mise`. All tasks can also be run directly.
 
 ### Common tasks
 
 ```sh
-# Build (TypeScript compile)
+# Build (TypeScript compile to dist/)
 mise run build
 bun run build
 
-# Development mode (auto-restart on changes)
+# Development mode (recompile on changes)
 mise run dev
 
-# Start server
+# Start MCP server
 mise run start
+node dist/cli.js mcp
 
 # Lint
 mise run lint
-bunx eslint src tests
+bunx eslint src/ tests/
 
 # Lint with auto-fix
 mise run lint:fix
-bunx eslint src tests --fix
+bunx eslint --fix src/ tests/
 
 # Open MCP Inspector (interactive tool tester)
 mise run inspect
@@ -36,24 +41,23 @@ mise run inspect
 ### Tests
 
 ```sh
-# Run all unit tests
+# Run all unit tests (compiles first via pretest)
 mise run test
-bun test tests/parser.test.ts tests/tools.test.ts
+bun run test
 
 # Run a single test file
-bun test tests/parser.test.ts
-bun test tests/tools.test.ts
-bun test tests/shim.test.ts
+npx vitest run tests/parser.test.ts
+npx vitest run tests/tools.test.ts
 
 # Run a single test by name pattern
-bun test tests/parser.test.ts --test-name-pattern "parses plan date"
+npx vitest run tests/parser.test.ts -t "parses plan date"
 
 # Run integration tests (requires live DSB credentials)
-DSB_USERNAME=your_user DSB_PASSWORD=your_pass bun test tests/api.integration.test.ts
+DSB_USERNAME=your_user DSB_PASSWORD=your_pass npx vitest run tests/api.integration.test.ts
 DSB_USERNAME=... DSB_PASSWORD=... mise run test:integration
 ```
 
-Note: `tests/shim.test.ts` is intentionally excluded from `mise run test` and CI — run it manually when needed.
+Note: `tests/shim.test.ts` verifies `dist/` output structure — it requires a prior `tsc` build, which `"pretest": "tsc"` handles automatically.
 
 ## Code Style
 
@@ -70,10 +74,11 @@ Run `mise run lint:fix` to auto-format.
 ### TypeScript
 
 - **Strict mode** is enabled (`"strict": true` in `tsconfig.json`)
-- Target: `ES2022`, module system: `Node16`
+- Target: `ES2022`, module system: `NodeNext`
+- Runtime: Node.js ≥ 22 — compiled output in `dist/`
 - Always use explicit types; avoid `any`
 - Use `import type { ... }` for type-only imports
-- All imports use `.js` extension (even for `.ts` source files) — required by Node16 ESM:
+- All imports use `.js` extension (even for `.ts` source files) — required by NodeNext ESM:
   ```ts
   import { DsbmobileClient } from '../services/dsbmobile.js';
   import type { SubstitutionPlan } from '../types.js';
@@ -81,9 +86,10 @@ Run `mise run lint:fix` to auto-format.
 
 ### Import order
 
-1. Third-party packages (e.g. `@modelcontextprotocol/sdk`, `axios`, `zod`)
-2. Internal imports (relative paths with `.js` extension)
-3. `import type` for type-only imports (can be interleaved with the above, grouped by origin)
+1. Node built-ins (`node:module`, `node:fs`, etc.)
+2. Third-party packages (e.g. `@modelcontextprotocol/sdk`, `axios`, `commander`, `zod`)
+3. Internal imports (relative paths with `.js` extension)
+4. `import type` for type-only imports (can be interleaved with the above, grouped by origin)
 
 ### Naming conventions
 
@@ -115,6 +121,22 @@ The config (`eslint.config.js`) enables:
 Fix linting issues before committing. Prettier violations are errors, not warnings.
 
 ## Patterns and Architecture
+
+### SDK (`src/index.ts`)
+
+Barrel export — `DsbmobileClient`, `DsbmobileConfig`, `parseSubstitutionHtml`, and all public types. The class takes explicit credentials via constructor:
+
+```ts
+const client = new DsbmobileClient({ username: 'user', password: 'pass' });
+```
+
+### CLI (`src/cli.ts`)
+
+Entry point with `#!/usr/bin/env node` shebang. Uses `commander` for argument parsing. Reads credentials from env vars (`DSB_USERNAME`, `DSB_PASSWORD`) via `loadClient()` and calls the appropriate SDK method or `startMcpServer()`.
+
+### MCP server (`src/mcp.ts`)
+
+Exports `startMcpServer(client: DsbmobileClient): Promise<void>`. Creates a `McpServer`, registers all 4 tools, connects a `StdioServerTransport`. Called by the CLI `mcp` subcommand.
 
 ### Async / await
 
@@ -167,8 +189,9 @@ Tool input validation uses Zod:
 ### Class design
 
 - Single class `DsbmobileClient` with `private readonly` fields
+- Constructor takes `DsbmobileConfig { username, password }` — no env var reading
 - Token caching with lazy authentication via `ensureAuthenticated()` guard pattern
-- Token reused for the lifetime of the server process
+- Token reused for the lifetime of the client instance
 
 ### HTML parsing
 
@@ -178,7 +201,9 @@ HTML is parsed with regex + `matchAll` — no DOM parser or third-party HTML lib
 
 ```
 src/
-  index.ts           # Entry point: MCP server setup, env validation
+  index.ts           # SDK entry point: exports DsbmobileClient + types
+  cli.ts             # CLI entry point with shebang (commander)
+  mcp.ts             # MCP server function: startMcpServer()
   constants.ts       # API URLs, env var names, limits
   types.ts           # All TypeScript interfaces
   services/
@@ -190,14 +215,13 @@ src/
     timetables.ts    # get_timetables tool
   utils/
     errors.ts        # Error message helpers
+dist/                # Compiled output (generated by tsc)
 tests/
   fixtures/          # HTML fixtures for parser tests
   parser.test.ts     # Unit tests for HTML parser
   tools.test.ts      # Unit tests for all 4 MCP tools
   api.integration.test.ts  # Integration tests (live API)
-  shim.test.ts       # Structural tests for bin/dsbmobile-mcp-server.js
-bin/
-  dsbmobile-mcp-server.js  # Node.js shim that spawns bun
+  shim.test.ts       # Structural tests for dist/ output
 ```
 
 ## Git Workflow

@@ -7,12 +7,12 @@ description = "Compile TypeScript"
 run = "bun run build"
 
 [tasks.dev]
-description = "Start server in development mode (auto-restart on changes)"
-run = "bun --watch src/index.ts"
+description = "Watch mode (recompile on changes)"
+run = "tsc --watch"
 
 [tasks.start]
-description = "Start server"
-run = "bun src/index.ts"
+description = "Start MCP server"
+run = "node dist/cli.js mcp"
 
 [tasks.clean]
 description = "Remove build artifacts"
@@ -20,20 +20,20 @@ run = "rm -rf dist"
 
 [tasks.inspect]
 description = "Open MCP Inspector to test the server interactively"
-run = "bunx @modelcontextprotocol/inspector bun src/index.ts"
+run = "bunx @modelcontextprotocol/inspector node dist/cli.js mcp"
 
 [tasks.test]
 description = "Run unit tests"
-run = "bun test tests/parser.test.ts tests/tools.test.ts tests/shim.test.ts"
+run = "bun run test"
 
 [tasks."test:integration"]
 description = "Run integration tests against the real DSBmobile API (requires DSB_USERNAME and DSB_PASSWORD)"
-run = "bun test tests/api.integration.test.ts"
+run = "bun run test -- tests/api.integration.test.ts"
 
 [tasks.lint]
 description = "Run ESLint and Prettier checks"
-run = "bunx eslint src tests bin"
+run = "bunx eslint src/ tests/"
 
 [tasks."lint:fix"]
 description = "Auto-fix ESLint and Prettier issues"
-run = "bunx eslint src tests bin --fix"
+run = "bunx eslint --fix src/ tests/"

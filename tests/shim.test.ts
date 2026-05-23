@@ -1,90 +1,56 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
+import { createRequire } from 'node:module';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { spawnSync } from 'node:child_process';
 
-const directory = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(directory, '..');
-const shimPath = path.resolve(root, 'bin', 'dsbmobile-mcp-server.js');
-const packageJsonPath = path.resolve(root, 'package.json');
+const root = new URL('..', import.meta.url).pathname;
+const indexFilePath = path.resolve(root, 'dist', 'index.js');
+const cliFilePath = path.resolve(root, 'dist', 'cli.js');
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
+const packageJson = createRequire(import.meta.url)('../package.json') as Record<string, unknown>;
 
 describe('package.json entry points', () => {
-  test('bin points to the JS shim, not a .ts file', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const binEntry: unknown = packageJson?.bin?.['dsbmobile-mcp-server'];
-    expect(typeof binEntry).toBe('string');
-    expect(binEntry as string).not.toMatch(/\.ts$/);
-    expect(binEntry as string).toMatch(/\.js$/);
+  test('name is @udondan/dsbmobile', () => {
+    expect(packageJson.name).toBe('@udondan/dsbmobile');
   });
 
-  test('bin entry file exists', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const binEntry = packageJson?.bin?.['dsbmobile-mcp-server'] as string;
-    const binFile = path.resolve(root, binEntry);
-    expect(existsSync(binFile)).toBe(true);
+  test('main points to dist/index.js', () => {
+    expect(packageJson.main).toBe('dist/index.js');
   });
 
-  test('main field is not present (CLI-only package)', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    expect(packageJson.main).toBeUndefined();
+  test('types points to dist/index.d.ts', () => {
+    expect(packageJson.types).toBe('dist/index.d.ts');
+  });
+
+  test('bin.dsbmobile points to dist/cli.js', () => {
+    const bin = packageJson.bin as Record<string, string>;
+    expect(bin.dsbmobile).toBe('dist/cli.js');
+  });
+
+  test('exports map . to dist/index.js', () => {
+    const exports_ = packageJson.exports as Record<string, Record<string, string>>;
+    expect(exports_['.'].import).toBe('./dist/index.js');
+    expect(exports_['.'].types).toBe('./dist/index.d.ts');
   });
 });
 
-describe('shim file', () => {
-  test('shim file exists at bin/dsbmobile-mcp-server.js', () => {
-    expect(existsSync(shimPath)).toBe(true);
+describe('compiled dist/ output', () => {
+  test('dist/index.js exists after build', () => {
+    expect(existsSync(indexFilePath)).toBe(true);
   });
 
-  test('shim has #!/usr/bin/env node shebang', () => {
-    const content = readFileSync(shimPath, 'utf8');
+  test('dist/cli.js exists after build', () => {
+    expect(existsSync(cliFilePath)).toBe(true);
+  });
+
+  test('dist/cli.js has #!/usr/bin/env node shebang', () => {
+    const content = readFileSync(cliFilePath, 'utf8');
     expect(content.startsWith('#!/usr/bin/env node')).toBe(true);
   });
 
-  test('shim is valid JavaScript (no TypeScript syntax)', () => {
-    const content = readFileSync(shimPath, 'utf8');
-    // Should not contain TypeScript-specific syntax like type annotations or interfaces
-    expect(content).not.toMatch(/:\s*(string|number|boolean|void|unknown|any)\b/);
-    expect(content).not.toMatch(/^interface\s+/m);
-    expect(content).not.toMatch(/^type\s+\w+\s*=/m);
-  });
-
-  test('shim references src/index.ts as the target', () => {
-    const content = readFileSync(shimPath, 'utf8');
-    // The shim may reference the path as a combined string or as separate resolve() arguments
-    const hasSourceIndexTs =
-      content.includes('src/index.ts') ||
-      (content.includes("'src'") && content.includes("'index.ts'")) ||
-      (content.includes('"src"') && content.includes('"index.ts"'));
-    expect(hasSourceIndexTs).toBe(true);
-  });
-
-  test('shim invokes bun to run the TypeScript entry point', () => {
-    const content = readFileSync(shimPath, 'utf8');
-    expect(content).toMatch(/bun/);
-  });
-
-  test('shim uses __dirname or import.meta to resolve path (not hardcoded absolute path)', () => {
-    const content = readFileSync(shimPath, 'utf8');
-    const hasRelativeResolution =
-      content.includes('__dirname') ||
-      content.includes('import.meta') ||
-      content.includes('fileURLToPath') ||
-      content.includes('path.resolve') ||
-      content.includes('resolve(');
-    expect(hasRelativeResolution).toBe(true);
-  });
-
-  test('shim can be executed by node without ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING', () => {
-    // Run node --check on the shim to verify it parses as valid JS without type errors
-    const result = spawnSync('node', ['--check', shimPath], {
-      encoding: 'utf8',
-      timeout: 5000,
-    });
-    expect(result.stderr ?? '').not.toMatch(/ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING/);
-    expect(result.status).toBe(0);
+  test('dist/index.js does not start a server (is a module, not an executable)', () => {
+    const content = readFileSync(indexFilePath, 'utf8');
+    expect(content).not.toContain('StdioServerTransport');
+    expect(content).not.toContain('process.exit');
   });
 });
