@@ -1,0 +1,20 @@
+---
+registry:
+  dsbmobile:
+    title: DSBmobile MCP
+    description: Access German school substitution plans (Vertretungspläne) via DSBmobile
+    image: mcp/dsbmobile:latest
+    type: server
+    tools: []
+    secrets:
+      - name: dsbmobile.username
+        env: DSB_USERNAME
+        description: DSBmobile username/ID
+      - name: dsbmobile.password
+        env: DSB_PASSWORD
+        description: DSBmobile password
+      - name: dsbmobile.class
+        env: DSB_CLASS
+        description: Default class filter (e.g. 05e)
+name: dsbmobile-catalog
+displayName: DSBmobile Catalog

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "semanticCommits": "enabled",
+  "dependencyDashboard": false,
+  "schedule": ["before 6am on Monday"],
+  "packageRules": [
+    {
+      "description": "Group all non-major updates into a single PR",
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "all non-major dependencies",
+      "groupSlug": "all-minor-patch"
+    },
+    {
+      "description": "Automerge devDependency patch and minor updates when CI passes",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeStrategy": "squash",
+      "minimumReleaseAge": "3 days"
+    }
+  ],
+  "customManagers": [
+    {
+      "description": "Track Bun version in workflows and mise.toml",
+      "customType": "regex",
+      "fileMatch": ["^\\.github/workflows/.*\\.yml$", "^mise\\.toml$"],
+      "matchStrings": [
+        "bun-version:\\s*['\"]?(?<currentValue>[\\d.]+)['\"]?",
+        "bun\\s*=\\s*['\"](?<currentValue>[\\d.]+)['\"]"
+      ],
+      "depNameTemplate": "oven-sh/bun",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^bun-v(?<version>.*)$"
+    }
+  ]
+}
