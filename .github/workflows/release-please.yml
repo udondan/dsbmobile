@@ -13,4 +13,4 @@ jobs:
     steps:
       - uses: googleapis/release-please-action@v5
         with:
-          token: ${{ secrets.GH_PAT }}
+          token: ${{ secrets.OVERRIDE_TOKEN }}
