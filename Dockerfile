@@ -9,7 +9,7 @@ COPY tsconfig.json ./
 COPY src/ ./src/
 RUN bun run build && bun install --production --frozen-lockfile
 
-FROM node:22-alpine
+FROM node:24-alpine
 
 WORKDIR /app
 
