@@ -30,18 +30,18 @@ export function handleApiError(error: unknown): string {
           return `Error: API request failed with status ${error.response.status}. Please try again.`;
         }
       }
-    } else if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+    }
+    if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
       return 'Error: Request timed out. The DSBmobile service may be slow or unavailable. Please try again.';
-    } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+    }
+    if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
       return 'Error: Cannot connect to DSBmobile. Please check your internet connection and try again.';
     }
   }
 
-  if (error instanceof Error) {
-    return `Error: ${error.message}`;
-  }
-
-  return 'Error: An unexpected error occurred. Please try again.';
+  return error instanceof Error
+    ? `Error: ${error.message}`
+    : 'Error: An unexpected error occurred. Please try again.';
 }
 
 /**

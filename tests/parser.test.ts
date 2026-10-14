@@ -6,8 +6,9 @@ import axios from 'axios';
 import { DsbmobileClient, parseSubstitutionHtml } from '../src/services/dsbmobile.js';
 import type { SubstitutionPlan } from '../src/types.js';
 
+const fixtureDirectory = fileURLToPath(new URL('.', import.meta.url));
 const fixtureHtml = new TextDecoder('windows-1252').decode(
-  readFileSync(path.join(fileURLToPath(new URL('.', import.meta.url)), 'fixtures/subst_001.htm')),
+  readFileSync(path.join(fixtureDirectory, 'fixtures/subst_001.htm')),
 );
 
 function parse(html: string, lastUpdated = '01.01.2026 00:00'): SubstitutionPlan {
@@ -100,8 +101,8 @@ describe('getSubstitutions - page merging', () => {
   test('merges multiple pages with the same date into one plan', async () => {
     const client = new DsbmobileClient({ username: 'u', password: 'p' });
     vi.spyOn(client, 'getTimetables').mockResolvedValue([
-      { id: '1', title: 'Page 1', date: '20.03.2026 10:00', url: 'http://example.com/p1' },
-      { id: '2', title: 'Page 2', date: '20.03.2026 10:00', url: 'http://example.com/p2' },
+      { id: '1', title: 'Page 1', date: '20.03.2026 10:00', url: 'https://example.com/p1' },
+      { id: '2', title: 'Page 2', date: '20.03.2026 10:00', url: 'https://example.com/p2' },
     ]);
     vi.spyOn(axios, 'get').mockResolvedValue({
       data: makePageHtml('20.3.2026 Freitag (Seite 1 / 2)'),
@@ -116,8 +117,8 @@ describe('getSubstitutions - page merging', () => {
   test('keeps plans for different dates separate', async () => {
     const client = new DsbmobileClient({ username: 'u', password: 'p' });
     vi.spyOn(client, 'getTimetables').mockResolvedValue([
-      { id: '1', title: 'Day 1', date: '20.03.2026 10:00', url: 'http://example.com/p1' },
-      { id: '2', title: 'Day 2', date: '21.03.2026 10:00', url: 'http://example.com/p2' },
+      { id: '1', title: 'Day 1', date: '20.03.2026 10:00', url: 'https://example.com/p1' },
+      { id: '2', title: 'Day 2', date: '21.03.2026 10:00', url: 'https://example.com/p2' },
     ]);
     vi.spyOn(axios, 'get')
       .mockResolvedValueOnce({ data: makePageHtml('20.3.2026 Freitag (Seite 1 / 1)') })
@@ -132,7 +133,7 @@ describe('getSubstitutions - page merging', () => {
   test('skips pages where date cannot be parsed', async () => {
     const client = new DsbmobileClient({ username: 'u', password: 'p' });
     vi.spyOn(client, 'getTimetables').mockResolvedValue([
-      { id: '1', title: 'Page 1', date: '20.03.2026 10:00', url: 'http://example.com/p1' },
+      { id: '1', title: 'Page 1', date: '20.03.2026 10:00', url: 'https://example.com/p1' },
     ]);
     vi.spyOn(axios, 'get').mockResolvedValue({
       data: new TextEncoder().encode('<html><body>no date here</body></html>').buffer,

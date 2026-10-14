@@ -11,12 +11,12 @@ vi.mock('@modelcontextprotocol/sdk/server/mcp.js', () => ({
   McpServer: class {
     name: string;
     version: string;
+    registerTool = mockRegisterTool;
+    connect = mockConnect;
     constructor(options: { name: string; version: string }) {
       this.name = options.name;
       this.version = options.version;
     }
-    registerTool = mockRegisterTool;
-    connect = mockConnect;
   },
 }));
 
