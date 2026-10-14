@@ -74,7 +74,7 @@ jobs:
         if: needs.wait-for-turn.result == 'failure' || needs.wait-for-turn.result == 'cancelled'
         run: exit 1
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
