@@ -66,9 +66,6 @@ Error handling:
       try {
         const plans = await client.getSubstitutions();
 
-        // Use the provided className, fall back to DSB_CLASS env var, or show all
-        const effectiveClass = className ?? process.env[ENV_CLASS];
-
         if (plans.length === 0) {
           return {
             content: [
@@ -79,6 +76,9 @@ Error handling:
             ],
           };
         }
+
+        // Use the provided className, fall back to DSB_CLASS env var, or show all
+        const effectiveClass = className ?? process.env[ENV_CLASS];
 
         // Apply class filter if provided (explicit param takes priority over env var)
         const filter = effectiveClass?.toLowerCase();

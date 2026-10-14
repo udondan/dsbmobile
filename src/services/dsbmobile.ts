@@ -106,72 +106,6 @@ export class DsbmobileClient {
   }
 
   /**
-   * Fetches all available substitution plan (Vertretungsplan) entries.
-   *
-   * @returns Array of timetable entries with URLs to HTML plan pages
-   * @throws Error if authentication fails or the request fails
-   */
-  async getTimetables(): Promise<TimetableEntry[]> {
-    try {
-      const token = await this.ensureAuthenticated();
-      const response = await this.http.get<DsbItem[]>('/dsbtimetables', {
-        params: { authid: token },
-      });
-
-      return this.parseTimetables(response.data);
-    } catch (error) {
-      if (error instanceof Error && error.message.startsWith('Error:')) {
-        throw error;
-      }
-      throw new Error(handleApiError(error), { cause: error });
-    }
-  }
-
-  /**
-   * Fetches all news and announcements.
-   *
-   * @returns Array of news entries
-   * @throws Error if authentication fails or the request fails
-   */
-  async getNews(): Promise<NewsEntry[]> {
-    try {
-      const token = await this.ensureAuthenticated();
-      const response = await this.http.get<DsbItem[]>('/newstab', {
-        params: { authid: token },
-      });
-
-      return this.parseNews(response.data);
-    } catch (error) {
-      if (error instanceof Error && error.message.startsWith('Error:')) {
-        throw error;
-      }
-      throw new Error(handleApiError(error), { cause: error });
-    }
-  }
-
-  /**
-   * Fetches all available documents.
-   *
-   * @returns Array of document entries with download URLs
-   * @throws Error if authentication fails or the request fails
-   */
-  async getDocuments(): Promise<DocumentEntry[]> {
-    try {
-      const token = await this.ensureAuthenticated();
-      const response = await this.http.get<DsbItem[]>('/dsbdocuments', {
-        params: { authid: token },
-      });
-
-      return this.parseDocuments(response.data);
-    } catch (error) {
-      if (error instanceof Error && error.message.startsWith('Error:')) {
-        throw error;
-      }
-      throw new Error(handleApiError(error), { cause: error });
-    }
-  }
-
-  /**
    * Parses raw DSBmobile timetable items into structured TimetableEntry objects.
    * Timetables have ConType=2 with children that contain the actual plan URLs.
    * The parent item holds the descriptive title; children are individual pages.
@@ -182,13 +116,13 @@ export class DsbmobileClient {
     for (const item of items) {
       if (item.ConType === 2 && item.Childs && item.Childs.length > 0) {
         const validChildren = item.Childs.filter((c) => c.Detail);
-        const multiPage = validChildren.length > 1;
+        const isMultiPage = validChildren.length > 1;
 
         // Each child represents a page of the plan
         for (const [index, validChild] of validChildren.entries()) {
           const child = validChild;
           // Use the parent's descriptive title; append page number if multi-page
-          const title = multiPage ? `${item.Title} (Seite ${index + 1})` : item.Title;
+          const title = isMultiPage ? `${item.Title} (Seite ${index + 1})` : item.Title;
 
           const entry: TimetableEntry = {
             id: child.Id,
@@ -256,6 +190,104 @@ export class DsbmobileClient {
   }
 
   /**
+   * Parses raw DSBmobile document items into structured DocumentEntry objects.
+   */
+  private parseDocuments(items: DsbItem[]): DocumentEntry[] {
+    const entries: DocumentEntry[] = [];
+
+    for (const item of items) {
+      if (item.ConType === 2 && item.Childs && item.Childs.length > 0) {
+        // Documents are often nested
+        for (const child of item.Childs) {
+          if (child.Detail) {
+            entries.push({
+              id: child.Id,
+              title: child.Title || item.Title,
+              url: child.Detail,
+              date: child.Date || item.Date,
+            });
+          }
+        }
+      } else if (item.Detail) {
+        entries.push({
+          id: item.Id,
+          title: item.Title,
+          url: item.Detail,
+          date: item.Date,
+        });
+      }
+    }
+
+    return entries;
+  }
+
+  /**
+   * Fetches all available substitution plan (Vertretungsplan) entries.
+   *
+   * @returns Array of timetable entries with URLs to HTML plan pages
+   * @throws Error if authentication fails or the request fails
+   */
+  async getTimetables(): Promise<TimetableEntry[]> {
+    try {
+      const token = await this.ensureAuthenticated();
+      const response = await this.http.get<DsbItem[]>('/dsbtimetables', {
+        params: { authid: token },
+      });
+
+      return this.parseTimetables(response.data);
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith('Error:')) {
+        throw error;
+      }
+      throw new Error(handleApiError(error), { cause: error });
+    }
+  }
+
+  /**
+   * Fetches all news and announcements.
+   *
+   * @returns Array of news entries
+   * @throws Error if authentication fails or the request fails
+   */
+  async getNews(): Promise<NewsEntry[]> {
+    try {
+      const token = await this.ensureAuthenticated();
+      const response = await this.http.get<DsbItem[]>('/newstab', {
+        params: { authid: token },
+      });
+
+      return this.parseNews(response.data);
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith('Error:')) {
+        throw error;
+      }
+      throw new Error(handleApiError(error), { cause: error });
+    }
+  }
+
+  /**
+   * Fetches all available documents.
+   *
+   * @returns Array of document entries with download URLs
+   * @throws Error if authentication fails or the request fails
+   */
+  async getDocuments(): Promise<DocumentEntry[]> {
+    try {
+      const token = await this.ensureAuthenticated();
+      const response = await this.http.get<DsbItem[]>('/dsbdocuments', {
+        params: { authid: token },
+      });
+
+      return this.parseDocuments(response.data);
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith('Error:')) {
+        throw error;
+      }
+      throw new Error(handleApiError(error), { cause: error });
+    }
+  }
+
+  /**
    * Fetches and parses all substitution plan pages, returning structured entries.
    * This fetches the actual HTML content of each timetable page and parses the
    * substitution table into structured data.
@@ -298,38 +330,6 @@ export class DsbmobileClient {
       throw new Error(handleApiError(error), { cause: error });
     }
   }
-
-  /**
-   * Parses raw DSBmobile document items into structured DocumentEntry objects.
-   */
-  private parseDocuments(items: DsbItem[]): DocumentEntry[] {
-    const entries: DocumentEntry[] = [];
-
-    for (const item of items) {
-      if (item.ConType === 2 && item.Childs && item.Childs.length > 0) {
-        // Documents are often nested
-        for (const child of item.Childs) {
-          if (child.Detail) {
-            entries.push({
-              id: child.Id,
-              title: child.Title || item.Title,
-              url: child.Detail,
-              date: child.Date || item.Date,
-            });
-          }
-        }
-      } else if (item.Detail) {
-        entries.push({
-          id: item.Id,
-          title: item.Title,
-          url: item.Detail,
-          date: item.Date,
-        });
-      }
-    }
-
-    return entries;
-  }
 }
 
 /**
@@ -362,7 +362,7 @@ export function parseSubstitutionHtml(html: string, lastUpdated: string): Substi
 
     // Class header row: single cell with class name (e.g. "10a  10a" or just "10a")
     if (cells.length === 1) {
-      currentClass = cells[0].split(/\s+/)[0] ?? '';
+      currentClass = cells[0].split(/\s+/, 1)[0] ?? '';
       continue;
     }
 
@@ -392,7 +392,7 @@ export function parseSubstitutionHtml(html: string, lastUpdated: string): Substi
       subject,
       originalRoom,
       substituteRoom,
-      text: text === '\u00A0' ? '' : text,
+      text: text === '\u{A0}' ? '' : text,
     });
   }
 
