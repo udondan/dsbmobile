@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.2](https://github.com/udondan/dsbmobile/compare/v1.2.1...v1.2.2) (2026-10-17)
+
+
+### Dependencies
+
+* **deps:** update dependency @modelcontextprotocol/inspector to v2.11.0 ([#55](https://github.com/udondan/dsbmobile/issues/55)) ([53f23e7](https://github.com/udondan/dsbmobile/commit/53f23e7351121c9e1831377471f9a8d873b4f358))
+* **deps:** update dependency eslint-plugin-prettier to v5.5.7 ([#54](https://github.com/udondan/dsbmobile/issues/54)) ([418ac8b](https://github.com/udondan/dsbmobile/commit/418ac8b9ac7acac4bad9d54a641eaf679fd1ca31))
+* **deps:** update dependency eslint-plugin-unicorn to v78 ([#53](https://github.com/udondan/dsbmobile/issues/53)) ([80ea74b](https://github.com/udondan/dsbmobile/commit/80ea74b33a48a2290d0fee850da5d04abca91576))
+* **deps:** update dependency typescript-eslint to v8.71.2 ([#52](https://github.com/udondan/dsbmobile/issues/52)) ([ec8c6a6](https://github.com/udondan/dsbmobile/commit/ec8c6a60ddc7613ce081c11bcc1bb7eea708a12b))
+* **deps:** update dependency vitest to v5.0.4 ([#50](https://github.com/udondan/dsbmobile/issues/50)) ([6201b58](https://github.com/udondan/dsbmobile/commit/6201b58abcff7f10f8b621fcffbb3915c920dc73))
+* **deps:** update dependency zod to v4.6.6 ([#49](https://github.com/udondan/dsbmobile/issues/49)) ([7eb6da7](https://github.com/udondan/dsbmobile/commit/7eb6da7f71b5c541a992102d2d45081d2c2dcafd))
+* **deps:** update dependency zod to v4.6.7 ([#51](https://github.com/udondan/dsbmobile/issues/51)) ([5a5c8ec](https://github.com/udondan/dsbmobile/commit/5a5c8ec4de47783272e1ee3c8273d21fc389be81))
+* **deps:** update udondan/wait-for-turn to v1.4.0 ([#47](https://github.com/udondan/dsbmobile/issues/47)) ([b52822a](https://github.com/udondan/dsbmobile/commit/b52822a6e95ca2ffe596584b22cf9451338533fb))
+
 ## [1.2.1](https://github.com/udondan/dsbmobile/compare/v1.2.0...v1.2.1) (2026-10-14)
 
 
