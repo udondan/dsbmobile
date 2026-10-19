@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.2.2](https://github.com/udondan/dsbmobile/compare/v1.2.1...v1.2.2) (2026-10-19)
+
+
+### Dependencies
+
+* **deps:** lock file maintenance ([#57](https://github.com/udondan/dsbmobile/issues/57)) ([c7762c6](https://github.com/udondan/dsbmobile/commit/c7762c614f0e7886aeb09f79c9b0beca6106bf6f))
+* **deps:** lock file maintenance ([#58](https://github.com/udondan/dsbmobile/issues/58)) ([af2f60b](https://github.com/udondan/dsbmobile/commit/af2f60bdb562918f7cecfb680290936f170ebba5))
+* **deps:** lock file maintenance ([#59](https://github.com/udondan/dsbmobile/issues/59)) ([2289fba](https://github.com/udondan/dsbmobile/commit/2289fbaa2d1068c557494c31908f3170820804d9))
+* **deps:** lock file maintenance ([#60](https://github.com/udondan/dsbmobile/issues/60)) ([ea4c636](https://github.com/udondan/dsbmobile/commit/ea4c6362d45af35cfb58c73d12fd618541b35b94))
+* **deps:** lock file maintenance ([#61](https://github.com/udondan/dsbmobile/issues/61)) ([56becb3](https://github.com/udondan/dsbmobile/commit/56becb380cb6013f99844e6f9d00484ce95bc08d))
+* **deps:** lock file maintenance ([#62](https://github.com/udondan/dsbmobile/issues/62)) ([7b282ef](https://github.com/udondan/dsbmobile/commit/7b282ef630494c6450f34a023eceef38554df7d3))
+* **deps:** update dependency @modelcontextprotocol/inspector to v2.11.0 ([#55](https://github.com/udondan/dsbmobile/issues/55)) ([53f23e7](https://github.com/udondan/dsbmobile/commit/53f23e7351121c9e1831377471f9a8d873b4f358))
+* **deps:** update dependency eslint-plugin-prettier to v5.5.7 ([#54](https://github.com/udondan/dsbmobile/issues/54)) ([418ac8b](https://github.com/udondan/dsbmobile/commit/418ac8b9ac7acac4bad9d54a641eaf679fd1ca31))
+* **deps:** update dependency eslint-plugin-unicorn to v78 ([#53](https://github.com/udondan/dsbmobile/issues/53)) ([80ea74b](https://github.com/udondan/dsbmobile/commit/80ea74b33a48a2290d0fee850da5d04abca91576))
+* **deps:** update dependency typescript-eslint to v8.71.2 ([#52](https://github.com/udondan/dsbmobile/issues/52)) ([ec8c6a6](https://github.com/udondan/dsbmobile/commit/ec8c6a60ddc7613ce081c11bcc1bb7eea708a12b))
+* **deps:** update dependency vitest to v5.0.4 ([#50](https://github.com/udondan/dsbmobile/issues/50)) ([6201b58](https://github.com/udondan/dsbmobile/commit/6201b58abcff7f10f8b621fcffbb3915c920dc73))
+* **deps:** update dependency vitest to v5.0.5 ([#56](https://github.com/udondan/dsbmobile/issues/56)) ([d0796cf](https://github.com/udondan/dsbmobile/commit/d0796cf3e824fe2bcf2c796a31d0cc3d1194ef0b))
+* **deps:** update dependency zod to v4.6.6 ([#49](https://github.com/udondan/dsbmobile/issues/49)) ([7eb6da7](https://github.com/udondan/dsbmobile/commit/7eb6da7f71b5c541a992102d2d45081d2c2dcafd))
+* **deps:** update dependency zod to v4.6.7 ([#51](https://github.com/udondan/dsbmobile/issues/51)) ([5a5c8ec](https://github.com/udondan/dsbmobile/commit/5a5c8ec4de47783272e1ee3c8273d21fc389be81))
+* **deps:** update udondan/wait-for-turn to v1.4.0 ([#47](https://github.com/udondan/dsbmobile/issues/47)) ([b52822a](https://github.com/udondan/dsbmobile/commit/b52822a6e95ca2ffe596584b22cf9451338533fb))
+
 ## [1.2.1](https://github.com/udondan/dsbmobile/compare/v1.2.0...v1.2.1) (2026-10-14)
 
 
