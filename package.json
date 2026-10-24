@@ -1,0 +1,82 @@
+{
+  "name": "@udondan/dsbmobile",
+  "version": "1.2.2",
+  "description": "SDK, CLI, and MCP server for DSBmobile — access German school substitution plans (Vertretungspläne)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/udondan/dsbmobile.git"
+  },
+  "author": {
+    "name": "Daniel Schroeder",
+    "email": "deemes79@googlemail.com",
+    "url": "https://udondan.com/"
+  },
+  "license": "MIT",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/udondan"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "cli",
+    "sdk",
+    "dsbmobile",
+    "vertretungsplan",
+    "school",
+    "substitution-plan"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "dsbmobile": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/cli.js mcp",
+    "pretest": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit -p tsconfig.lint.json",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint --fix src/ tests/",
+    "format": "prettier --write src/ tests/",
+    "format:check": "prettier --check src/ tests/",
+    "markdownlint": "markdownlint-cli2 '**/*.md' '#node_modules' '#.claude' '#.vibe' '#CHANGELOG.md'"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "axios": "1.20.0",
+    "commander": "15.0.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@modelcontextprotocol/inspector": "2.12.0",
+    "@types/node": "26.6.5",
+    "eslint": "10.13.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-prettier": "5.5.7",
+    "eslint-plugin-unicorn": "78.0.0",
+    "prettier": "3.9.10",
+    "typescript": "7.0.2",
+    "typescript-eslint": "8.72.0",
+    "markdownlint-cli2": "0.24.0",
+    "vitest": "5.0.5"
+  }
+}
