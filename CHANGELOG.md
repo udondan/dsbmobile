@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.3](https://github.com/udondan/dsbmobile/compare/v1.2.2...v1.2.3) (2026-10-26)
+
+
+### Dependencies
+
+* **deps:** lock file maintenance ([#70](https://github.com/udondan/dsbmobile/issues/70)) ([6665161](https://github.com/udondan/dsbmobile/commit/66651618fc253bc40173427f816e63656511e931))
+* **deps:** update dependency @modelcontextprotocol/inspector to v2.12.0 ([#67](https://github.com/udondan/dsbmobile/issues/67)) ([2b57cab](https://github.com/udondan/dsbmobile/commit/2b57cab56ac1c0be1b3968bff4056a9b5992008f))
+* **deps:** update dependency bun to v1.4.4 ([#68](https://github.com/udondan/dsbmobile/issues/68)) ([5c93978](https://github.com/udondan/dsbmobile/commit/5c93978fee516421ab2c2c1bea7073f83cd71ed9))
+* **deps:** update dependency eslint to v10.13.0 ([#63](https://github.com/udondan/dsbmobile/issues/63)) ([7696308](https://github.com/udondan/dsbmobile/commit/76963082cba80b0d862f11fcddf3b3c17ca69528))
+* **deps:** update dependency markdownlint-cli2 to v0.24.0 ([#66](https://github.com/udondan/dsbmobile/issues/66)) ([06e14c1](https://github.com/udondan/dsbmobile/commit/06e14c128180d3fdda585966f33218a9a765c098))
+* **deps:** update dependency typescript-eslint to v8.72.0 ([#65](https://github.com/udondan/dsbmobile/issues/65)) ([2a4ad97](https://github.com/udondan/dsbmobile/commit/2a4ad9743f967b6d3e903e97f9e63f589f803c60))
+* **deps:** update oven/bun docker tag to v1.4.4 ([#69](https://github.com/udondan/dsbmobile/issues/69)) ([667d4ff](https://github.com/udondan/dsbmobile/commit/667d4ff5352d29359d3e821fb12bf6d31a3b6916))
+
 ## [1.2.2](https://github.com/udondan/dsbmobile/compare/v1.2.1...v1.2.2) (2026-10-19)
 
 
