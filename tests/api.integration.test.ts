@@ -9,7 +9,7 @@ import { DsbmobileClient } from '../src/services/dsbmobile.js';
 
 const hasCredentials = Boolean(process.env.DSB_USERNAME) && Boolean(process.env.DSB_PASSWORD);
 
-describe('DsbmobileClient (integration)', () => {
+describe('DsbmobileClient (integration)', { timeout: 60_000 }, () => {
   let client: DsbmobileClient;
 
   beforeAll(() => {
