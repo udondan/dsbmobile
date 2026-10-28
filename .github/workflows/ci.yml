@@ -97,9 +97,26 @@ jobs:
           DSB_PASSWORD: ${{ secrets.DSB_PASSWORD }}
           DSB_CLASS: ${{ secrets.DSB_CLASS }}
 
+  actions:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: actionlint shellcheck
+
+      # Also runs shellcheck over every `run:` block.
+      - name: actionlint
+        run: actionlint
+
   required:
     runs-on: ubuntu-latest
-    needs: [changes, test]
+    needs: [changes, test, actions]
     if: always()
     steps:
       - name: Check result
@@ -107,6 +124,8 @@ jobs:
           if [[ "${{ needs.changes.result }}" == "failure" || \
                 "${{ needs.changes.result }}" == "cancelled" || \
                 "${{ needs.test.result }}" == "failure" || \
-                "${{ needs.test.result }}" == "cancelled" ]]; then
+                "${{ needs.test.result }}" == "cancelled" || \
+                "${{ needs.actions.result }}" == "failure" || \
+                "${{ needs.actions.result }}" == "cancelled" ]]; then
             exit 1
           fi
