@@ -116,12 +116,12 @@ describe('parseSubstitutionHtml', () => {
 });
 
 // Minimal single-entry HTML for a given date label (e.g. "20.3.2026 Freitag (Seite 1 / 2)")
-function makePageHtml(dateLabel: string): ArrayBuffer {
+function makePageHtml(dateLabel: string, period = '3'): ArrayBuffer {
   const html = [
     `<div class="mon_title">${dateLabel}</div>`,
     '<table>',
     '<tr><td>10a</td></tr>',
-    '<tr><td>Vertretung</td><td>3</td><td>Aaa</td><td>SPO</td><td>A101</td><td>&nbsp;</td></tr>',
+    `<tr><td>Vertretung</td><td>${period}</td><td>Aaa</td><td>SPO</td><td>A101</td><td>&nbsp;</td></tr>`,
     '</table>',
   ].join('');
   return new TextEncoder().encode(html).buffer;
@@ -138,14 +138,29 @@ describe('getSubstitutions - page merging', () => {
       { id: '1', title: 'Page 1', date: '20.03.2026 10:00', url: 'https://example.com/p1' },
       { id: '2', title: 'Page 2', date: '20.03.2026 10:00', url: 'https://example.com/p2' },
     ]);
-    vi.spyOn(axios, 'get').mockResolvedValue({
-      data: makePageHtml('20.3.2026 Freitag (Seite 1 / 2)'),
-    });
+    vi.spyOn(axios, 'get')
+      .mockResolvedValueOnce({ data: makePageHtml('20.3.2026 Freitag (Seite 1 / 2)', '3') })
+      .mockResolvedValueOnce({ data: makePageHtml('20.3.2026 Freitag (Seite 2 / 2)', '5') });
 
     const plans = await client.getSubstitutions();
     expect(plans).toHaveLength(1);
     expect(plans[0].date).toBe('2026-03-20');
     expect(plans[0].entries).toHaveLength(2);
+  });
+
+  test('merges consecutive periods across pages of the same date', async () => {
+    const client = new DsbmobileClient({ username: 'u', password: 'p' });
+    vi.spyOn(client, 'getTimetables').mockResolvedValue([
+      { id: '1', title: 'Page 1', date: '20.03.2026 10:00', url: 'https://example.com/p1' },
+      { id: '2', title: 'Page 2', date: '20.03.2026 10:00', url: 'https://example.com/p2' },
+    ]);
+    vi.spyOn(axios, 'get')
+      .mockResolvedValueOnce({ data: makePageHtml('20.3.2026 Freitag (Seite 1 / 2)', '3') })
+      .mockResolvedValueOnce({ data: makePageHtml('20.3.2026 Freitag (Seite 2 / 2)', '4') });
+
+    const plans = await client.getSubstitutions();
+    expect(plans[0].entries).toHaveLength(1);
+    expect(plans[0].entries[0].period).toBe('3 - 4');
   });
 
   test('keeps plans for different dates separate', async () => {

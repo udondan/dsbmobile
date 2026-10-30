@@ -24,6 +24,10 @@ describe('SDK exports', () => {
     expect(typeof sdk.parseSubstitutionHtml).toBe('function');
   });
 
+  test('mergeConsecutivePeriods is exported as a function', () => {
+    expect(typeof sdk.mergeConsecutivePeriods).toBe('function');
+  });
+
   test('startMcpServer is not part of the public SDK surface', () => {
     expect(sdk).not.toHaveProperty('startMcpServer');
   });

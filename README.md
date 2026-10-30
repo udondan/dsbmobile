@@ -308,7 +308,7 @@ Lädt und parst alle Vertretungsplan-Seiten und gibt strukturierte Einträge zur
 - `entries`: Liste der Vertretungseinträge, jeweils mit:
   - `className`: Klasse (z. B. `07b`, `Q2_Kra`)
   - `type`: Art der Vertretung (z. B. `Vertretung`, `Statt-Vertretung`, `Entfall`)
-  - `period`: Stunde(n) (z. B. `3` oder `5 - 6`)
+  - `period`: Stunde(n) (z. B. `3` oder `5 - 6`). Einträge, die sich nur durch direkt aufeinanderfolgende Stunden unterscheiden, werden zu einem Bereich zusammengefasst (aus `3` und `4` wird `3 - 4`).
   - `originalTeacher`: Kürzel der vertretenen Lehrkraft
   - `substituteTeacher`: Kürzel der vertretenden Lehrkraft
   - `subject`: Fachkürzel (z. B. `SPO`, `ETHI`, `E`)
