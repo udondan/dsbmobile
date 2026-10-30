@@ -91,6 +91,28 @@ describe('parseSubstitutionHtml', () => {
     expect(plan.entries).toHaveLength(1);
     expect(plan.entries[0]).toMatchObject({ className: '10a', type: 'Entfall', text: 'frei' });
   });
+
+  test('decodes &amp; last so escaped entities stay escaped', () => {
+    const html = [
+      '<div class="mon_title">20.3.2026 Freitag</div>',
+      '<tr><td>10a</td></tr>',
+      '<tr><td>Vertretung</td><td>3</td><td>Aaa</td><td>SPO</td><td>A101</td><td>a &amp;lt; b &amp; c</td></tr>',
+    ].join('');
+    const plan = parse(html);
+    expect(plan.entries[0].text).toBe('a &lt; b & c');
+  });
+
+  test('handles malformed HTML without closing tags in linear time', () => {
+    const html =
+      '<div class="mon_title">20.3.2026 Freitag</div>' +
+      '<tr><td>'.repeat(50_000) +
+      '<tr'.repeat(50_000) +
+      '<'.repeat(50_000);
+    const started = performance.now();
+    const plan = parse(html);
+    expect(performance.now() - started).toBeLessThan(1000);
+    expect(plan.entries.length).toBe(0);
+  });
 });
 
 // Minimal single-entry HTML for a given date label (e.g. "20.3.2026 Freitag (Seite 1 / 2)")

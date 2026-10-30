@@ -23,18 +23,43 @@ export interface DsbmobileConfig {
 
 /** Decode common HTML entities and trim whitespace. */
 function decodeHtmlEntities(s: string): string {
-  return s
-    .replaceAll('&nbsp;', ' ')
-    .replaceAll('&amp;', '&')
-    .replaceAll('&lt;', '<')
-    .replaceAll('&gt;', '>')
-    .replaceAll('&quot;', '"')
-    .trim();
+  return (
+    s
+      .replaceAll('&nbsp;', ' ')
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>')
+      .replaceAll('&quot;', '"')
+      // Decode &amp; last so "&amp;lt;" becomes "&lt;", not "<".
+      .replaceAll('&amp;', '&')
+      .trim()
+  );
 }
 
 /** Strip all HTML tags and trim whitespace. */
 function stripHtmlTags(s: string): string {
-  return s.replaceAll(/<[^>]+>/g, '').trim();
+  return s.replaceAll(/<[^<>]*>/g, '').trim();
+}
+
+/**
+ * Return the inner HTML of each element between `openTag` and the next `closeTag`.
+ * Scans the input once, so malformed HTML without closing tags can't cause quadratic runtime.
+ * Both regexes must have the global flag.
+ */
+function extractElements(html: string, openTag: RegExp, closeTag: RegExp): string[] {
+  const elements: string[] = [];
+  let position = 0;
+  for (;;) {
+    openTag.lastIndex = position;
+    const open = openTag.exec(html);
+    if (!open) break;
+    const start = open.index + open[0].length;
+    closeTag.lastIndex = start;
+    const close = closeTag.exec(html);
+    if (!close) break;
+    elements.push(html.slice(start, close.index));
+    position = close.index + close[0].length;
+  }
+  return elements;
 }
 
 /**
@@ -339,8 +364,13 @@ export class DsbmobileClient {
  */
 export function parseSubstitutionHtml(html: string, lastUpdated: string): SubstitutionPlan {
   // Extract plan date (e.g. "20.3.2026 Freitag (Seite 1 / 8)") and convert to ISO date string
-  const dateMatch = /class="mon_title">(.*?)<\/div>/.exec(html);
-  const rawDate = dateMatch ? decodeHtmlEntities(stripHtmlTags(dateMatch[1])) : '';
+  const titleMarker = 'class="mon_title">';
+  const titleStart = html.indexOf(titleMarker);
+  const titleEnd = titleStart === -1 ? -1 : html.indexOf('</div>', titleStart);
+  const rawDate =
+    titleEnd === -1
+      ? ''
+      : decodeHtmlEntities(stripHtmlTags(html.slice(titleStart + titleMarker.length, titleEnd)));
   const datePartMatch = /^(\d{1,2})\.(\d{1,2})\.(\d{4})/.exec(rawDate);
   if (!datePartMatch) {
     throw new Error(`Could not parse plan date from HTML: "${rawDate}"`);
@@ -351,11 +381,9 @@ export function parseSubstitutionHtml(html: string, lastUpdated: string): Substi
   const entries: SubstitutionEntry[] = [];
   let currentClass = '';
 
-  const allRows = html.matchAll(/<tr[^>]*>(.*?)<\/tr>/gs);
-  for (const rowMatch of allRows) {
-    const rowHtml = rowMatch[1];
-    const cells = [...rowHtml.matchAll(/<t[dh][^>]*>(.*?)<\/t[dh]>/gs)].map((m) =>
-      decodeHtmlEntities(stripHtmlTags(m[1])),
+  for (const rowHtml of extractElements(html, /<tr[^<>]*>/g, /<\/tr>/g)) {
+    const cells = extractElements(rowHtml, /<t[dh][^<>]*>/g, /<\/t[dh]>/g).map((cell) =>
+      decodeHtmlEntities(stripHtmlTags(cell)),
     );
 
     if (cells.length === 0) continue;
