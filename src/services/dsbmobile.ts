@@ -362,7 +362,7 @@ export function parseSubstitutionHtml(html: string, lastUpdated: string): Substi
 
     // Class header row: single cell with class name (e.g. "10a  10a" or just "10a")
     if (cells.length === 1) {
-      currentClass = cells[0].split(/\s+/, 1)[0] ?? '';
+      currentClass = cells[0].split(/\s+/, 1)[0];
       continue;
     }
 
@@ -392,7 +392,7 @@ export function parseSubstitutionHtml(html: string, lastUpdated: string): Substi
       subject,
       originalRoom,
       substituteRoom,
-      text: text === '\u{A0}' ? '' : text,
+      text,
     });
   }
 
