@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.3.0](https://github.com/udondan/dsbmobile/compare/v1.2.3...v1.3.0) (2026-10-30)
+
+
+### Features
+
+* publish the Docker image udondan/dsbmobile to Docker Hub ([#81](https://github.com/udondan/dsbmobile/issues/81)) ([ff530f8](https://github.com/udondan/dsbmobile/commit/ff530f858f117e2f8680697f720e92c1a70e3c24))
+
+
+### Bug Fixes
+
+* avoid double-unescaping of HTML entities and quadratic regex parsing ([#86](https://github.com/udondan/dsbmobile/issues/86)) ([dc75ecc](https://github.com/udondan/dsbmobile/commit/dc75ecccdfcacf789d3b95f0660bd9a01f7e7069))
+
+
+### Dependencies
+
+* **deps:** update dependency @modelcontextprotocol/sdk to v1.32.2 ([#71](https://github.com/udondan/dsbmobile/issues/71)) ([1666419](https://github.com/udondan/dsbmobile/commit/16664196060e799c37881401dbc265724eff1afb))
+* **deps:** update dependency axios to v1.21.0 ([#85](https://github.com/udondan/dsbmobile/issues/85)) ([891345b](https://github.com/udondan/dsbmobile/commit/891345bf882433ed1ea5f32b85da75092b5ac667))
+* **deps:** update dependency eslint-plugin-unicorn to v79 ([#72](https://github.com/udondan/dsbmobile/issues/72)) ([4f8e35d](https://github.com/udondan/dsbmobile/commit/4f8e35d9c65bd96abd938e674359e76f4315f0c9))
+* **deps:** update dependency typescript-eslint to v8.72.1 ([#80](https://github.com/udondan/dsbmobile/issues/80)) ([893d673](https://github.com/udondan/dsbmobile/commit/893d6731746d2dfa4d402e7ba0ebba57229ca265))
+* **deps:** update jdx/mise-action action to v5 ([#78](https://github.com/udondan/dsbmobile/issues/78)) ([a820f7f](https://github.com/udondan/dsbmobile/commit/a820f7f90aa7c0ddafc638777ca65e489563fa4c))
+* **deps:** update node.js to v26 ([#75](https://github.com/udondan/dsbmobile/issues/75)) ([f6d5083](https://github.com/udondan/dsbmobile/commit/f6d5083769d2685bcc82572391670271d9525120))
+* **deps:** update udondan/wait-for-turn action to v1.4.1 ([#84](https://github.com/udondan/dsbmobile/issues/84)) ([deed198](https://github.com/udondan/dsbmobile/commit/deed198f4c200e01a508f227dcb3e851524f4e73))
+* **deps:** update udondan/wait-for-turn action to v1.4.2 ([#87](https://github.com/udondan/dsbmobile/issues/87)) ([8bd342d](https://github.com/udondan/dsbmobile/commit/8bd342de376a6231b1fde4fdbb831999fb88390f))
+
 ## [1.2.3](https://github.com/udondan/dsbmobile/compare/v1.2.2...v1.2.3) (2026-10-26)
 
 
