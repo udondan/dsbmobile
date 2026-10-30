@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { DsbmobileClient } from '../src/services/dsbmobile.js';
-import { ENV_CLASS } from '../src/constants.js';
+import { CHARACTER_LIMIT, ENV_CLASS } from '../src/constants.js';
 import { registerDocumentsTool } from '../src/tools/documents.js';
 import { registerNewsTool } from '../src/tools/news.js';
 import { registerSubstitutionsTool } from '../src/tools/substitutions.js';
@@ -266,5 +266,115 @@ describe('get_documents tool', () => {
     expect(result.text).toContain('Elternbrief');
     expect(result.text).toContain('https://example.com/brief.pdf');
     expect(result.structuredContent.count).toBe(1);
+  });
+});
+
+// --- Shared behavior of all tools ---
+
+const longText = 'x'.repeat(CHARACTER_LIMIT);
+
+const tools = [
+  {
+    name: 'get_timetables',
+    register: registerTimetablesTool,
+    method: 'getTimetables',
+    data: [{ id: '1', title: longText, date: '', url: 'https://example.com' }],
+  },
+  {
+    name: 'get_substitutions',
+    register: registerSubstitutionsTool,
+    method: 'getSubstitutions',
+    data: [makePlan([{ ...entryA, text: longText }])],
+  },
+  {
+    name: 'get_news',
+    register: registerNewsTool,
+    method: 'getNews',
+    data: [{ id: '1', title: 'News', detail: longText, date: '', tags: '' }],
+  },
+  {
+    name: 'get_documents',
+    register: registerDocumentsTool,
+    method: 'getDocuments',
+    data: [{ id: '1', title: longText, url: 'https://example.com', date: '' }],
+  },
+] as const;
+
+describe.each(tools)('$name tool (shared behavior)', ({ register, method, data }) => {
+  beforeEach(() => {
+    delete process.env[ENV_CLASS];
+  });
+
+  test('truncates responses longer than the character limit', async () => {
+    const client = makeMockClient({ [method]: vi.fn(() => Promise.resolve(data)) });
+    const result = await callTool(register, client);
+    expect(result.text.length).toBeLessThan(CHARACTER_LIMIT + 200);
+    expect(result.text).toContain('[Response truncated');
+  });
+
+  test('returns the error message when the client fails', async () => {
+    const client = makeMockClient({
+      [method]: vi.fn(() => Promise.reject(new Error('Error: Service down'))),
+    });
+    const result = await callTool(register, client);
+    expect(result.isError).toBe(true);
+    expect(result.text).toBe('Error: Service down');
+  });
+
+  test('returns a generic message when the client throws something that is not an error', async () => {
+    const client = makeMockClient({
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+      [method]: vi.fn(() => Promise.reject('boom')),
+    });
+    const result = await callTool(register, client);
+    expect(result.isError).toBe(true);
+    expect(result.text).toBe('An unexpected error occurred.');
+  });
+});
+
+describe('tool output details', () => {
+  beforeEach(() => {
+    delete process.env[ENV_CLASS];
+  });
+
+  test('get_timetables lists the preview URL when present', async () => {
+    const entries: TimetableEntry[] = [
+      {
+        id: '1',
+        title: 'Plan',
+        date: '',
+        url: 'https://example.com/plan.htm',
+        previewUrl: 'https://example.com/preview.png',
+      },
+    ];
+    const client = makeMockClient({ getTimetables: vi.fn(() => Promise.resolve(entries)) });
+    const result = await callTool(registerTimetablesTool, client);
+    expect(result.text).toContain('- **Preview**: https://example.com/preview.png');
+  });
+
+  test('get_news lists tags and leaves out empty content', async () => {
+    const news: NewsEntry[] = [{ id: '1', title: 'Info', detail: '', date: '', tags: 'wichtig' }];
+    const client = makeMockClient({ getNews: vi.fn(() => Promise.resolve(news)) });
+    const result = await callTool(registerNewsTool, client);
+    expect(result.text).toContain('- **Tags**: wichtig');
+    expect(result.text).not.toContain('**Content**');
+  });
+
+  test('get_substitutions skips empty plans and shows notes and single teachers or rooms', async () => {
+    const emptyPlan = { ...makePlan([]), date: '2026-03-19' };
+    const plan = makePlan([
+      { ...entryA, text: 'Raumwechsel' },
+      { ...entryB, originalTeacher: '', substituteTeacher: 'Fff', originalRoom: '' },
+      { ...entryB, subject: '', originalTeacher: '', originalRoom: '', substituteRoom: 'B1' },
+    ]);
+    const client = makeMockClient({
+      getSubstitutions: vi.fn(() => Promise.resolve([emptyPlan, plan])),
+    });
+    const result = await callTool(registerSubstitutionsTool, client);
+    expect(result.text).not.toContain('## 2026-03-19');
+    expect(result.text).toContain('Note: Raumwechsel');
+    expect(result.text).toContain('Teacher: Aaa → Bbb');
+    expect(result.text).toContain('Teacher: Fff');
+    expect(result.text).toContain('Room: B1');
   });
 });
