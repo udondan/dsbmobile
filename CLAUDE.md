@@ -19,7 +19,7 @@ when there is no corresponding mise task.
 
 ## Project Overview
 
-A three-interface package for the DSBmobile school substitution service. Written in TypeScript, compiled to `dist/` with `tsc`, and runs on Node.js ≥ 22.
+A three-interface package for the DSBmobile school substitution service. Written in TypeScript, compiled to `dist/` with `tsc`, and runs on Node.js ≥ 22.12.0.
 
 - **SDK** — importable library: `import { DsbmobileClient } from '@udondan/dsbmobile'`
 - **CLI** — `dsbmobile` command with subcommands: `mcp`, `substitutions`, `timetables`, `news`, `documents`
@@ -93,7 +93,7 @@ Run `mise run lint:fix` to auto-format.
 
 - **Strict mode** is enabled (`"strict": true` in `tsconfig.json`)
 - Target: `ES2022`, module system: `NodeNext`
-- Runtime: Node.js ≥ 22 — compiled output in `dist/`
+- Runtime: Node.js ≥ 22.12.0 — compiled output in `dist/`
 - Always use explicit types; avoid `any`
 - Use `import type { ... }` for type-only imports
 - All imports use `.js` extension (even for `.ts` source files) — required by NodeNext ESM:
