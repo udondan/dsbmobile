@@ -1,5 +1,12 @@
 # @udondan/dsbmobile
 
+[![npm](https://img.shields.io/npm/v/@udondan/dsbmobile)](https://www.npmjs.com/package/@udondan/dsbmobile)
+[![Docker](https://img.shields.io/docker/v/udondan/dsbmobile?sort=semver&label=docker)](https://hub.docker.com/r/udondan/dsbmobile)
+[![Node.js](https://img.shields.io/node/v/@udondan/dsbmobile)](https://www.npmjs.com/package/@udondan/dsbmobile)
+[![CI](https://github.com/udondan/dsbmobile/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/udondan/dsbmobile/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/udondan/dsbmobile/graph/badge.svg)](https://codecov.io/gh/udondan/dsbmobile)
+[![License](https://img.shields.io/github/license/udondan/dsbmobile)](LICENSE)
+
 Node.js-Paket für den Zugriff auf [DSBmobile](https://www.dsbmobile.de) – die digitale Schulkommunikationsplattform für Vertretungspläne, Neuigkeiten und Dokumente. Es kapselt die DSBmobile-API und bietet drei Schnittstellen über einen gemeinsamen Kern:
 
 - **SDK** – importierbare `DsbmobileClient`-Klasse für Node.js-Projekte
@@ -12,7 +19,9 @@ Node.js-Paket für den Zugriff auf [DSBmobile](https://www.dsbmobile.de) – die
 - [Konfiguration](#konfiguration)
 - [SDK](#sdk)
 - [CLI](#cli)
+  - [Mit Docker](#mit-docker)
 - [MCP-Server](#mcp-server)
+  - [Docker MCP Toolkit](#docker-mcp-toolkit)
 - [Verfügbare MCP-Tools](#verfügbare-mcp-tools)
 - [Entwicklung](#entwicklung)
 - [Lizenz](#lizenz)
@@ -26,6 +35,10 @@ npm install -g @udondan/dsbmobile
 # Ohne Installation direkt nutzen
 DSB_USERNAME=benutzername DSB_PASSWORD=passwort npx @udondan/dsbmobile mcp
 ```
+
+CLI und MCP-Server gibt es auch als Docker-Image
+[`udondan/dsbmobile`](https://hub.docker.com/r/udondan/dsbmobile) (amd64 und
+arm64), ohne dass Node.js installiert sein muss. Siehe [Mit Docker](#mit-docker).
 
 ## Konfiguration
 
@@ -100,7 +113,34 @@ dsbmobile documents
 dsbmobile mcp
 ```
 
+### Mit Docker
+
+Argumente nach dem Image-Namen gehen an das CLI. `-e NAME` ohne Wert übernimmt
+die Variable aus der eigenen Shell:
+
+```bash
+docker run --rm -e DSB_USERNAME -e DSB_PASSWORD -e DSB_CLASS udondan/dsbmobile substitutions
+```
+
+Als Alias verhält sich das Image wie ein installiertes `dsbmobile`:
+
+```bash
+alias dsbmobile='docker run --rm -e DSB_USERNAME -e DSB_PASSWORD -e DSB_CLASS udondan/dsbmobile'
+
+dsbmobile substitutions --class 07b
+```
+
 ## MCP-Server
+
+Der Server läuft über stdio, entweder per `npx` (siehe unten) oder als
+Docker-Image:
+
+```bash
+docker run --rm -i -e DSB_USERNAME -e DSB_PASSWORD -e DSB_CLASS udondan/dsbmobile
+```
+
+Ohne Argumente startet das Image den MCP-Server. `-i` hält stdin offen, über das
+der Server mit dem Client spricht.
 
 ### Einrichtung in Claude Code
 
@@ -147,6 +187,36 @@ Anschließend die Zugangsdaten in der MCP-Konfiguration hinterlegen (`~/.claude.
 }
 ```
 
+Mit Docker statt `npx` sieht der Eintrag so aus. `-e NAME` ohne Wert reicht die
+Variable aus `env` an den Container weiter:
+
+```json
+{
+  "mcpServers": {
+    "dsbmobile": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "-e",
+        "DSB_USERNAME",
+        "-e",
+        "DSB_PASSWORD",
+        "-e",
+        "DSB_CLASS",
+        "udondan/dsbmobile"
+      ],
+      "env": {
+        "DSB_USERNAME": "benutzername",
+        "DSB_PASSWORD": "passwort",
+        "DSB_CLASS": "07b"
+      }
+    }
+  }
+}
+```
+
 ### Einrichtung in anderen MCP-Clients
 
 ```json
@@ -160,6 +230,54 @@ Anschließend die Zugangsdaten in der MCP-Konfiguration hinterlegen (`~/.claude.
   }
 }
 ```
+
+### Docker MCP Toolkit
+
+Mit dem [Docker MCP Toolkit](https://docs.docker.com/ai/mcp-catalog-and-toolkit/toolkit/)
+von Docker Desktop läuft der Server als Container hinter dem MCP Gateway. Das
+Gateway startet den Container bei Bedarf und reicht seine Tools an die
+verbundenen Clients weiter. Die Zugangsdaten liegen als Secrets in Docker Desktop
+statt im Klartext in der Client-Konfiguration.
+
+Voraussetzung ist Docker Desktop mit aktiviertem MCP Toolkit.
+
+1. Die Server-Definition [`docker-mcp.yml`](docker-mcp.yml) herunterladen und
+   einem Toolkit-Profil hinzufügen. Das Toolkit liest solche Dateien nur aus
+   seinem Katalog-Verzeichnis:
+
+   ```bash
+   mkdir -p ~/.docker/mcp/catalogs
+   curl -fsSL https://raw.githubusercontent.com/udondan/dsbmobile/main/docker-mcp.yml -o ~/.docker/mcp/catalogs/dsbmobile.yml
+
+   # neues Profil "dsbmobile" ...
+   docker mcp profile create --name dsbmobile --id dsbmobile --server "file://$HOME/.docker/mcp/catalogs/dsbmobile.yml"
+   # ... oder einem bestehenden Profil hinzufügen
+   docker mcp profile server add default --server "file://$HOME/.docker/mcp/catalogs/dsbmobile.yml"
+   ```
+
+   Das Profil behält das Image in der Version, die es beim Hinzufügen hatte.
+   Zum Aktualisieren `profile server add` erneut ausführen.
+
+2. Die Zugangsdaten als Secrets hinterlegen (`dsbmobile.class` ist optional):
+
+   ```bash
+   docker mcp secret set dsbmobile.username=benutzername
+   docker mcp secret set dsbmobile.password=passwort
+   docker mcp secret set dsbmobile.class=07b
+   ```
+
+3. Einen Client mit dem Profil verbinden:
+
+   ```bash
+   docker mcp client connect claude-desktop --profile dsbmobile
+   ```
+
+   `docker mcp client connect --help` listet weitere Clients wie `claude-code`,
+   `cursor` oder `vscode`. Das geht auch in Docker Desktop unter _MCP Toolkit_.
+
+`docker mcp gateway run --profile dsbmobile --dry-run --verbose` prüft die
+Einrichtung, ohne einen Client zu starten. Die Ausgabe sollte die Zeile
+`dsbmobile: (4 tools)` enthalten.
 
 ## Verfügbare MCP-Tools
 
@@ -242,7 +360,16 @@ bun run test
 
 # Lint
 bun run lint
+
+# Docker-Image bauen und einem Docker MCP Toolkit-Profil hinzufügen
+mise run docker-build                # docker build -t udondan/dsbmobile .
+mise run docker-register [profil]    # Standard-Profil: dsbmobile
+mise run docker                      # beides
 ```
+
+Das lokal gebaute `udondan/dsbmobile:latest` ersetzt das öffentliche Image, das
+Docker MCP Toolkit nutzt also den lokalen Build. `docker pull udondan/dsbmobile`
+wechselt zurück.
 
 ## Lizenz
 

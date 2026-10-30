@@ -41,7 +41,21 @@ mise run format         # Format with Prettier
 mise run format:check   # Check formatting without writing
 mise run markdownlint   # Lint markdown files
 mise run inspect        # Open MCP Inspector (interactive tool tester)
+
+# Docker image
+mise run docker-build                # docker build -t udondan/dsbmobile .
+mise run docker-register [profile]   # add to a Docker MCP Toolkit profile (default: dsbmobile)
+mise run docker                      # both
 ```
+
+The local `udondan/dsbmobile:latest` takes the place of the public image, so
+the Docker MCP Toolkit runs the local build. `docker pull udondan/dsbmobile`
+switches back.
+
+Releases (`publish.yml`) publish the npm package and push the Docker image
+`udondan/dsbmobile` (amd64 and arm64, tags `x.y.z`, `x.y`, `x`, `latest`, signed
+with cosign) with an access token from the GitHub environment `docker-hub`
+(`DOCKERHUB_USERNAME` variable, `DOCKERHUB_TOKEN` secret).
 
 Run a single test file:
 

@@ -1,20 +1,20 @@
----
-registry:
-  dsbmobile:
-    title: DSBmobile MCP
-    description: Access German school substitution plans (Vertretungspläne) via DSBmobile
-    image: mcp/dsbmobile:latest
-    type: server
-    tools: []
-    secrets:
-      - name: dsbmobile.username
-        env: DSB_USERNAME
-        description: DSBmobile username/ID
-      - name: dsbmobile.password
-        env: DSB_PASSWORD
-        description: DSBmobile password
-      - name: dsbmobile.class
-        env: DSB_CLASS
-        description: Default class filter (e.g. 05e)
-name: dsbmobile-catalog
-displayName: DSBmobile Catalog
+# Server definition for the Docker MCP Toolkit.
+# Add it to a profile with `mise run docker-register` (see README, section Docker MCP Toolkit).
+name: dsbmobile
+type: server
+image: udondan/dsbmobile:latest
+title: DSBmobile
+description: German school substitution plans (Vertretungspläne), timetables, news and documents via DSBmobile
+secrets:
+  - name: dsbmobile.username
+    env: DSB_USERNAME
+    example: '123456'
+    description: DSBmobile username/ID
+  - name: dsbmobile.password
+    env: DSB_PASSWORD
+    example: your_password
+    description: DSBmobile password
+  - name: dsbmobile.class
+    env: DSB_CLASS
+    example: 07b
+    description: Default class filter for get_substitutions (optional)
