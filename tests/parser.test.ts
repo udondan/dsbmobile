@@ -79,6 +79,18 @@ describe('parseSubstitutionHtml', () => {
     const plan = parse(emptyHtml);
     expect(plan.entries.length).toBe(0);
   });
+
+  test('ignores rows without cells', () => {
+    const html = [
+      '<div class="mon_title">01.01.2026 Donnerstag</div>',
+      '<table><tr></tr><tr><td>10a</td></tr><tr></tr>',
+      '<tr><td>Entfall</td><td>1</td><td>Aaa</td><td>DE</td><td>A101</td><td>frei</td></tr>',
+      '</table>',
+    ].join('');
+    const plan = parse(html);
+    expect(plan.entries).toHaveLength(1);
+    expect(plan.entries[0]).toMatchObject({ className: '10a', type: 'Entfall', text: 'frei' });
+  });
 });
 
 // Minimal single-entry HTML for a given date label (e.g. "20.3.2026 Freitag (Seite 1 / 2)")
