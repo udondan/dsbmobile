@@ -39,6 +39,21 @@ describe('mergeConsecutivePeriods', () => {
     expect(periods([entry(' 3 ')])).toEqual(['3']);
   });
 
+  test('ignores the property order of entries', () => {
+    const reordered: SubstitutionEntry = {
+      text: '',
+      substituteRoom: 'A007',
+      originalRoom: '',
+      subject: 'KU',
+      substituteTeacher: 'Neu',
+      originalTeacher: 'Fer',
+      period: '4',
+      type: 'Vertretung',
+      className: '06b',
+    };
+    expect(periods([entry('3'), reordered])).toEqual(['3 - 4']);
+  });
+
   test('keeps entries with a gap between periods separate', () => {
     expect(periods([entry('3'), entry('5')])).toEqual(['3', '5']);
   });

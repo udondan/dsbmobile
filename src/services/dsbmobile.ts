@@ -463,7 +463,16 @@ export function mergeConsecutivePeriods(entries: SubstitutionEntry[]): Substitut
       order.push(entry);
       continue;
     }
-    const key = JSON.stringify({ ...entry, period: undefined });
+    const key = JSON.stringify([
+      entry.className,
+      entry.type,
+      entry.originalTeacher,
+      entry.substituteTeacher,
+      entry.subject,
+      entry.originalRoom,
+      entry.substituteRoom,
+      entry.text,
+    ]);
     const group = groups.get(key);
     if (group) {
       group.ranges.push(range);
