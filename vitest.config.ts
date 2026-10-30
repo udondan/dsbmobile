@@ -11,5 +11,11 @@ if (typeof process.loadEnvFile === 'function') {
 }
 
 export default defineConfig({
-  test: {},
+  test: {
+    coverage: {
+      // Measure every source file, including those no test imports.
+      include: ['src/**/*.ts'],
+      thresholds: { 100: true },
+    },
+  },
 });
