@@ -10,7 +10,11 @@
  * ```
  */
 
-export { DsbmobileClient, parseSubstitutionHtml } from './services/dsbmobile.js';
+export {
+  DsbmobileClient,
+  mergeConsecutivePeriods,
+  parseSubstitutionHtml,
+} from './services/dsbmobile.js';
 export type { DsbmobileConfig } from './services/dsbmobile.js';
 
 export type {

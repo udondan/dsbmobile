@@ -347,7 +347,10 @@ export class DsbmobileClient {
         }
       }
 
-      return [...merged.values()];
+      return [...merged.values()].map((plan) => ({
+        ...plan,
+        entries: mergeConsecutivePeriods(plan.entries),
+      }));
     } catch (error) {
       if (error instanceof Error && error.message.startsWith('Error:')) {
         throw error;
@@ -425,4 +428,71 @@ export function parseSubstitutionHtml(html: string, lastUpdated: string): Substi
   }
 
   return { date, lastUpdated, entries };
+}
+
+/**
+ * Parses a period string like "3", "5 - 6" or "5-6" into a start/end pair.
+ * Returns undefined for anything else.
+ */
+function parsePeriod(period: string): [number, number] | undefined {
+  const match = /^(\d+)(?:\s*-\s*(\d+))?$/.exec(period.trim());
+  if (!match) return undefined;
+  const start = Number(match[1]);
+  const end = match[2] === undefined ? start : Number(match[2]);
+  return start <= end ? [start, end] : undefined;
+}
+
+function formatPeriod(start: number, end: number): string {
+  return start === end ? String(start) : `${String(start)} - ${String(end)}`;
+}
+
+/**
+ * Normalizes substitution entries: entries that are identical except for their period and
+ * whose periods are consecutive (or overlap) are merged into a single entry with a range
+ * (e.g. "3" and "4" become "3 - 4"). Ranges are always written as "start - end".
+ * Entries with a period that is not a number or a range are kept unchanged.
+ * Merged entries take the position of the first entry of their group.
+ */
+export function mergeConsecutivePeriods(entries: SubstitutionEntry[]): SubstitutionEntry[] {
+  const groups = new Map<string, { entry: SubstitutionEntry; ranges: [number, number][] }>();
+  const order: (SubstitutionEntry | string)[] = [];
+
+  for (const entry of entries) {
+    const range = parsePeriod(entry.period);
+    if (!range) {
+      order.push(entry);
+      continue;
+    }
+    const key = JSON.stringify({ ...entry, period: undefined });
+    const group = groups.get(key);
+    if (group) {
+      group.ranges.push(range);
+    } else {
+      groups.set(key, { entry, ranges: [range] });
+      order.push(key);
+    }
+  }
+
+  const result: SubstitutionEntry[] = [];
+  for (const item of order) {
+    if (typeof item !== 'string') {
+      result.push(item);
+      continue;
+    }
+    const { entry, ranges } = groups.get(item)!;
+    ranges.sort((a, b) => a[0] - b[0]);
+    const merged: [number, number][] = [];
+    for (const [start, end] of ranges) {
+      const last = merged.at(-1);
+      if (last && start <= last[1] + 1) {
+        last[1] = Math.max(last[1], end);
+      } else {
+        merged.push([start, end]);
+      }
+    }
+    for (const [start, end] of merged) {
+      result.push({ ...entry, period: formatPeriod(start, end) });
+    }
+  }
+  return result;
 }

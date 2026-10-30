@@ -63,7 +63,7 @@ export interface SubstitutionEntry {
   className: string;
   /** Type of substitution (e.g., "Vertretung", "Statt-Vertretung", "Entfall") */
   type: string;
-  /** Lesson period(s) (e.g., "3" or "5 - 6") */
+  /** Lesson period(s) (e.g., "3" or "5 - 6"). Consecutive identical entries are merged into a range. */
   period: string;
   /** Original teacher abbreviation */
   originalTeacher: string;
