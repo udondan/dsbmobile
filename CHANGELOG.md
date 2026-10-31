@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.4.0](https://github.com/udondan/dsbmobile/compare/v1.3.0...v1.4.0) (2026-10-31)
+
+
+### Features
+
+* merge consecutive substitution periods into ranges ([#88](https://github.com/udondan/dsbmobile/issues/88)) ([eb3d47a](https://github.com/udondan/dsbmobile/commit/eb3d47a5509277604ec74e08b76c6fbdb1c15b9b))
+
+
+### Dependencies
+
+* **deps:** update jdx/mise-action action to v5.2.4 ([#90](https://github.com/udondan/dsbmobile/issues/90)) ([897ec38](https://github.com/udondan/dsbmobile/commit/897ec386f2c8d6abff50156a4e6e4d8e89a2dfc8))
+* **deps:** update udondan/wait-for-turn action to v1.5.0 ([#91](https://github.com/udondan/dsbmobile/issues/91)) ([3217590](https://github.com/udondan/dsbmobile/commit/321759028af5cdc7cb042a0f0562796faf4622d9))
+
 ## [1.3.0](https://github.com/udondan/dsbmobile/compare/v1.2.3...v1.3.0) (2026-10-30)
 
 
