@@ -1,0 +1,227 @@
+---
+name: CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+  # Uploads the coverage of main, which Codecov compares pull requests with.
+  # The live integration tests don't run on push.
+  push:
+    branches:
+      - main
+
+permissions: {}
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    if: github.event_name == 'pull_request'
+    outputs:
+      src: ${{ steps.filter.outputs.src }}
+    steps:
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            src:
+              - src/**
+              - tests/**
+              - package.json
+              - bun.lock
+              - tsconfig*.json
+              - eslint.config.js
+              - .prettierrc.json
+              - .prettierignore
+              - .markdownlint.json
+              - vitest.config.ts
+              - .github/workflows/ci.yml
+
+  # All runs share one live DSBmobile account. Many parallel runs, for
+  # example of several Renovate PRs, would send bursts of requests that look
+  # suspicious, so only one run at a time may run the integration tests.
+  wait-for-turn:
+    needs: [changes]
+    if: ${{ !cancelled() && github.event_name != 'push' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork != true) && (needs.changes.result == 'skipped' || (needs.changes.result == 'success' && needs.changes.outputs.src == 'true')) }}
+    permissions:
+      actions: read
+      contents: write # lock refs under refs/wait-for-turn/
+      pull-requests: read # labels for label-weights
+      statuses: write # queue position as commit status
+    # Queue order, the concurrency group that cancels outdated waiting runs and
+    # the rebase of branches that are behind main: see
+    # https://github.com/udondan/wait-for-turn#reusable-workflow
+    # The rebase needs OVERRIDE_TOKEN: pushes with github.token don't start new runs.
+    uses: udondan/wait-for-turn/.github/workflows/wait-for-turn.yml@v1
+    secrets:
+      update-token: ${{ secrets.OVERRIDE_TOKEN }}
+
+  test:
+    runs-on: ubuntu-latest
+    needs: [changes, wait-for-turn]
+    # Pull requests from forks can't take the turn and skip the wait, as they
+    # don't get the secrets. Fail if the wait failed or was cancelled.
+    if: ${{ !cancelled() && (needs.changes.result == 'skipped' || (needs.changes.result == 'success' && needs.changes.outputs.src == 'true')) }}
+    permissions:
+      contents: read
+      id-token: write # Codecov upload via OIDC
+    steps:
+      - name: Check turn
+        if: needs.wait-for-turn.result == 'failure' || needs.wait-for-turn.result == 'cancelled'
+        run: exit 1
+
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: '1.4.4'
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+      - run: bun run lint
+      - run: bun run format:check
+      - run: bun run markdownlint
+      # Only the coverage of the unit tests is uploaded. The integration tests
+      # need the live account and don't run on push to main, so their coverage
+      # would be missing from the report of main that Codecov compares with.
+      - run: bun run test -- --coverage --coverage.reporter=lcov --coverage.reporter=text
+      - name: Run integration tests
+        if: github.event_name != 'push'
+        run: bun run test -- tests/api.integration.test.ts
+        env:
+          DSB_USERNAME: ${{ secrets.DSB_USERNAME }}
+          DSB_PASSWORD: ${{ secrets.DSB_PASSWORD }}
+          DSB_CLASS: ${{ secrets.DSB_CLASS }}
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          use_oidc: true
+          fail_ci_if_error: false
+          files: coverage/lcov.info
+
+  # Codecov reports its result as the check runs codecov/project and
+  # codecov/patch. This job waits for them, so a coverage drop fails the
+  # required job. It is skipped along with the tests, e.g. when only the README
+  # changes, and passes with a warning if Codecov doesn't report in time.
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: github.event_name == 'pull_request' && needs.test.result == 'success'
+    timeout-minutes: 10
+    permissions:
+      checks: read
+    steps:
+      - name: Wait for Codecov
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          for _ in $(seq 30); do
+            checks=$(gh api --paginate --slurp "repos/$REPO/commits/$SHA/check-runs?per_page=100" | jq -c '
+              [.[].check_runs[] | select(.app.slug == "codecov" and (.name == "codecov/project" or .name == "codecov/patch"))]
+              | group_by(.name) | map(max_by(.id))')
+            if [[ $(jq '[.[] | select(.status == "completed")] | length' <<<"$checks") == 2 ]]; then
+              jq -r '.[] | "\(.name): \(.conclusion) (\(.output.title))"' <<<"$checks"
+              failed=$(jq -r '.[] | select(.conclusion != "success" and .conclusion != "neutral") | .name' <<<"$checks")
+              if [[ -n "$failed" ]]; then
+                echo "::error::Coverage check failed: ${failed//$'\n'/, }. Details are linked in the checks of this pull request."
+                exit 1
+              fi
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::warning::Codecov didn't report within 5 minutes, coverage is not checked."
+
+  actions:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: jdx/mise-action@6be3c7ed4c21d4f76b208d351d95aac273ebb76d # v5.2.4
+        with:
+          install_args: actionlint shellcheck zizmor
+
+      # Also runs shellcheck over every `run:` block.
+      - name: actionlint
+        run: actionlint
+
+      - name: zizmor
+        run: zizmor .
+        env:
+          GH_TOKEN: ${{ github.token }} # zizmor checks the actions online
+
+  # Builds the image and runs it the way the Docker MCP Toolkit does, through
+  # a profile and the gateway. Needs no DSBmobile credentials: the gateway sets
+  # missing secrets to <UNKNOWN>, and the client only signs in when a tool is
+  # called, so listing the tools sends no request to DSBmobile.
+  docker:
+    name: Docker
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: jdx/mise-action@6be3c7ed4c21d4f76b208d351d95aac273ebb76d # v5.2.4
+        with:
+          install_args: github:docker/mcp-gateway
+
+      - name: Install docker mcp plugin
+        run: |
+          mkdir -p ~/.docker/cli-plugins
+          ln -s "$(mise which docker-mcp)" ~/.docker/cli-plugins/docker-mcp
+          docker mcp version
+
+      - run: mise run docker-build
+
+      - name: Run the CLI in the image
+        run: |
+          docker run --rm udondan/dsbmobile --version
+          docker run --rm udondan/dsbmobile --help
+
+      - run: mise run docker-register ci
+
+      # The gateway only verifies signatures of images under mcp/, and finds
+      # the locally built image without pulling it.
+      - name: List tools through the gateway
+        run: |
+          docker mcp gateway run --profile ci --dry-run --verbose 2>&1 | tee gateway.log
+          grep -E "dsbmobile: \([1-9][0-9]* tools\)" gateway.log
+
+  required:
+    runs-on: ubuntu-latest
+    needs: [changes, test, coverage, actions, docker]
+    if: always()
+    steps:
+      - name: Check result
+        run: |
+          if [[ "${{ needs.changes.result }}" == "failure" || \
+                "${{ needs.changes.result }}" == "cancelled" || \
+                "${{ needs.test.result }}" == "failure" || \
+                "${{ needs.test.result }}" == "cancelled" || \
+                "${{ needs.coverage.result }}" == "failure" || \
+                "${{ needs.coverage.result }}" == "cancelled" || \
+                "${{ needs.actions.result }}" == "failure" || \
+                "${{ needs.actions.result }}" == "cancelled" || \
+                "${{ needs.docker.result }}" == "failure" || \
+                "${{ needs.docker.result }}" == "cancelled" ]]; then
+            exit 1
+          fi
