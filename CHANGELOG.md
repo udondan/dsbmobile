@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.4.0](https://github.com/udondan/dsbmobile/compare/v1.3.0...v1.4.0) (2026-11-02)
+
+
+### Features
+
+* merge consecutive substitution periods into ranges ([#88](https://github.com/udondan/dsbmobile/issues/88)) ([eb3d47a](https://github.com/udondan/dsbmobile/commit/eb3d47a5509277604ec74e08b76c6fbdb1c15b9b))
+
+
+### Dependencies
+
+* **deps:** lock file maintenance ([#99](https://github.com/udondan/dsbmobile/issues/99)) ([69c211e](https://github.com/udondan/dsbmobile/commit/69c211ee795fbdca881684cb2b241f1f73168f0d))
+* **deps:** update dependency @modelcontextprotocol/inspector to v2.13.0 ([#97](https://github.com/udondan/dsbmobile/issues/97)) ([80e8aa8](https://github.com/udondan/dsbmobile/commit/80e8aa884d61db343f5cef801b9600c23c5eb606))
+* **deps:** update dependency @types/node to v26.6.6 ([#96](https://github.com/udondan/dsbmobile/issues/96)) ([5e91c77](https://github.com/udondan/dsbmobile/commit/5e91c77b4e1022f44b42df62537fa13fe9c1c170))
+* **deps:** update jdx/mise-action action to v5.2.4 ([#90](https://github.com/udondan/dsbmobile/issues/90)) ([897ec38](https://github.com/udondan/dsbmobile/commit/897ec386f2c8d6abff50156a4e6e4d8e89a2dfc8))
+* **deps:** update udondan/wait-for-turn action to v1.5.0 ([#91](https://github.com/udondan/dsbmobile/issues/91)) ([3217590](https://github.com/udondan/dsbmobile/commit/321759028af5cdc7cb042a0f0562796faf4622d9))
+
 ## [1.3.0](https://github.com/udondan/dsbmobile/compare/v1.2.3...v1.3.0) (2026-10-30)
 
 
