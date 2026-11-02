@@ -1,0 +1,106 @@
+[tools]
+bun = "1.4.4"
+node = "lts"
+# Workflow linters for the CI actions job, which installs only these three.
+actionlint = "1.7.12"
+# The runner's own shellcheck is older and reports differently. actionlint runs it over every `run:` block.
+shellcheck = "0.11.0"
+zizmor = "1.31.1"
+# The `docker mcp` plugin for the Docker CI job. Docker Desktop ships its own.
+"github:docker/mcp-gateway" = "0.44.1"
+
+[tasks.install]
+description = "Install dependencies and set up git hooks"
+run = ["bun install", "mise run install-hooks"]
+
+[tasks."install-hooks"]
+description = "Point git at the tracked hooks directory"
+run = "git config core.hooksPath hooks/"
+
+[tasks.build]
+description = "Compile TypeScript"
+run = "bun run build"
+
+[tasks.dev]
+description = "Watch mode (recompile on changes)"
+run = "bun run dev"
+
+[tasks.start]
+description = "Start MCP server"
+run = "node dist/cli.js mcp"
+
+[tasks.clean]
+description = "Remove build artifacts"
+run = "rm -rf dist"
+
+[tasks.cli]
+description = "Run CLI with credentials loaded from .env (e.g. mise run cli -- substitutions)"
+shell = "bash -c"
+run = "set -a && source .env && set +a && node dist/cli.js $@"
+
+[tasks.inspect]
+description = "Open MCP Inspector to test the server interactively"
+shell = "bash -c"
+run = "set -a && source .env && set +a && bunx @modelcontextprotocol/inspector node dist/cli.js mcp"
+
+[tasks.test]
+description = "Run unit tests"
+run = "bun run test"
+
+[tasks."test:watch"]
+description = "Run tests in watch mode"
+run = "bun run test:watch"
+
+[tasks."test:integration"]
+description = "Run integration tests against the real DSBmobile API (requires DSB_USERNAME and DSB_PASSWORD)"
+run = "bun run test -- tests/api.integration.test.ts"
+
+[tasks.typecheck]
+description = "Type-check without emitting files"
+run = "bun run typecheck"
+
+[tasks.lint]
+description = "Run ESLint"
+run = "bun run lint"
+
+[tasks."lint:fix"]
+description = "Auto-fix ESLint issues"
+run = "bun run lint:fix"
+
+[tasks.format]
+description = "Format all files with Prettier"
+run = "bun run format"
+
+[tasks."format:check"]
+description = "Check formatting without writing"
+run = "bun run format:check"
+
+[tasks.markdownlint]
+description = "Lint markdown files"
+run = "bun run markdownlint"
+
+# ── Docker tasks ─────────────────────────────────────────────────────────────
+
+[tasks.docker-build]
+description = "Build the Docker image"
+run = "docker build -t udondan/dsbmobile ."
+
+[tasks.docker-register]
+description = "Add the server to a Docker MCP Toolkit profile (created if missing)"
+usage = 'arg "[profile]" default="dsbmobile" help="Profile ID"'
+# docker mcp only reads server files from its catalogs directory.
+run = """
+catalogs="$HOME/.docker/mcp/catalogs"
+mkdir -p "$catalogs"
+cp docker-mcp.yml "$catalogs/dsbmobile.yml"
+server="file://$catalogs/dsbmobile.yml"
+if docker mcp profile show "$usage_profile" >/dev/null 2>&1; then
+  docker mcp profile server add "$usage_profile" --server "$server"
+else
+  docker mcp profile create --name "$usage_profile" --id "$usage_profile" --server "$server"
+fi
+"""
+
+[tasks.docker]
+description = "Build the image and add it to a Docker MCP Toolkit profile"
+depends = ["docker-build", "docker-register"]
