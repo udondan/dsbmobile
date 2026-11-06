@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.4.1](https://github.com/udondan/dsbmobile/compare/v1.4.0...v1.4.1) (2026-11-06)
+
+
+### Dependencies
+
+* **deps:** update dependency eslint to v10.14.0 ([#100](https://github.com/udondan/dsbmobile/issues/100)) ([0c2035e](https://github.com/udondan/dsbmobile/commit/0c2035e5a5133eb1e4f14d5eaec5f4f526a57957))
+* **deps:** update dependency zizmor to v1.32.0 ([#107](https://github.com/udondan/dsbmobile/issues/107)) ([c11ad02](https://github.com/udondan/dsbmobile/commit/c11ad027ee95866b067677f1328519c6a2e4acc8))
+* **deps:** update jdx/mise-action action to v5.2.5 ([#104](https://github.com/udondan/dsbmobile/issues/104)) ([99cc69c](https://github.com/udondan/dsbmobile/commit/99cc69c6c7252a9052acd56f6ffb1f0dc78ff820))
+* **deps:** update jdx/mise-action action to v5.2.6 ([#105](https://github.com/udondan/dsbmobile/issues/105)) ([3023e65](https://github.com/udondan/dsbmobile/commit/3023e6572ef061208172bff3f44fc7bd94075137))
+* **deps:** update vitest monorepo to v5.1.0 ([#106](https://github.com/udondan/dsbmobile/issues/106)) ([1f80484](https://github.com/udondan/dsbmobile/commit/1f80484774477590ae194be10fff5a8d299eb1b3))
+
 ## [1.4.0](https://github.com/udondan/dsbmobile/compare/v1.3.0...v1.4.0) (2026-11-02)
 
 
