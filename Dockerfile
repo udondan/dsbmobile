@@ -1,13 +1,13 @@
-FROM oven/bun:1.4.4-alpine AS build
+# Expects a compiled dist/ next to it: `mise run docker-build` builds it first.
+# TypeScript and the rest of the dev tooling stay out of the Docker build.
+
+# Bun only installs the runtime dependencies from bun.lock. The runtime image
+# has no Bun.
+FROM oven/bun:1.4.4-alpine AS deps
 
 WORKDIR /app
-
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
-
-COPY tsconfig.json ./
-COPY src/ ./src/
-RUN bun run build && bun install --production --frozen-lockfile
+RUN bun install --production --frozen-lockfile --ignore-scripts
 
 FROM node:26-alpine
 
@@ -16,9 +16,9 @@ LABEL com.docker.desktop.mcp.name="dsbmobile"
 
 WORKDIR /app
 
-COPY --from=build /app/package.json ./package.json
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/node_modules ./node_modules
+COPY package.json ./
+COPY --from=deps /app/node_modules ./node_modules
+COPY dist/ dist/
 
 # npm and corepack aren't needed at runtime, and their bundled dependencies
 # show up in vulnerability scans. apk upgrade pulls fixes for Alpine packages

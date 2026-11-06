@@ -4,7 +4,6 @@
 .vibe/
 hooks/
 node_modules/
-dist/
 coverage/
 tests/
 .env
