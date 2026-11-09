@@ -1,7 +1,7 @@
 {
   "name": "@udondan/dsbmobile",
   "version": "1.4.0",
-  "description": "Unofficial SDK, CLI, and MCP server for DSBmobile — access German school substitution plans (Vertretungspläne)",
+  "description": "Unofficial SDK, CLI, and MCP server for DSBmobile — access substitution plans (Vertretungspläne), timetables, news, and documents of German schools",
   "repository": {
     "type": "git",
     "url": "https://github.com/udondan/dsbmobile.git"
