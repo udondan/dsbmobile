@@ -14,9 +14,16 @@ function decodeHtmlEntities(s: string): string {
   );
 }
 
-/** Strip all HTML tags and trim whitespace. */
+/**
+ * Strip all HTML tags and trim whitespace.
+ * Leftover `<` from nested or unclosed fragments like `<scr<b>ipt>` are removed too, so no
+ * tag can remain. A literal `<` in the text is encoded as `&lt;` and decoded afterwards.
+ */
 function stripHtmlTags(s: string): string {
-  return s.replaceAll(/<[^<>]*>/g, '').trim();
+  return s
+    .replaceAll(/<[^<>]*>/g, '')
+    .replaceAll('<', '')
+    .trim();
 }
 
 /** Strip tags, then decode entities. */
