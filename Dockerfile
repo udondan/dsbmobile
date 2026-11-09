@@ -28,7 +28,8 @@ RUN apk upgrade --no-cache \
        /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
        /root/.npm
 
-USER node
+# The node user of the base image, by ID so the runtime can tell it isn't root.
+USER 1000:1000
 
 # `docker run udondan/dsbmobile <command>` runs the CLI; without a command the
 # image starts the MCP server, which is what the Docker MCP Toolkit expects.

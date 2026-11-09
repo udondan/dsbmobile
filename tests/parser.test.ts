@@ -102,6 +102,16 @@ describe('parseSubstitutionHtml', () => {
     expect(plan.entries[0].text).toBe('a &lt; b & c');
   });
 
+  test('leaves no tag behind in nested or unclosed tag fragments', () => {
+    const html = [
+      '<div class="mon_title">20.3.2026 Freitag</div>',
+      '<tr><td>10a</td></tr>',
+      '<tr><td>Vertretung</td><td>3</td><td>Aaa</td><td>SPO</td><td>A101</td><td>a <scr<b>ipt> b &lt; c</td></tr>',
+    ].join('');
+    const plan = parse(html);
+    expect(plan.entries[0].text).toBe('a script> b < c');
+  });
+
   test('handles malformed HTML without closing tags in linear time', () => {
     const html =
       '<div class="mon_title">20.3.2026 Freitag</div>' +
