@@ -10,56 +10,29 @@ import type {
   DocumentEntry,
   DsbItem,
   NewsEntry,
-  SubstitutionEntry,
   SubstitutionPlan,
   TimetableEntry,
 } from '../types.js';
 import { createAuthError, handleApiError } from '../utils/errors.js';
+import { parseDocuments, parseNews, parseTimetables } from './items.js';
+import { mergeConsecutivePeriods, parseSubstitutionHtml } from './parser.js';
+
+// Exported from here for the SDK entry point and existing imports.
+export { mergeConsecutivePeriods, parseSubstitutionHtml } from './parser.js';
 
 export interface DsbmobileConfig {
   username: string;
   password: string;
 }
 
-/** Decode common HTML entities and trim whitespace. */
-function decodeHtmlEntities(s: string): string {
-  return (
-    s
-      .replaceAll('&nbsp;', ' ')
-      .replaceAll('&lt;', '<')
-      .replaceAll('&gt;', '>')
-      .replaceAll('&quot;', '"')
-      // Decode &amp; last so "&amp;lt;" becomes "&lt;", not "<".
-      .replaceAll('&amp;', '&')
-      .trim()
-  );
-}
-
-/** Strip all HTML tags and trim whitespace. */
-function stripHtmlTags(s: string): string {
-  return s.replaceAll(/<[^<>]*>/g, '').trim();
-}
-
 /**
- * Return the inner HTML of each element between `openTag` and the next `closeTag`.
- * Scans the input once, so malformed HTML without closing tags can't cause quadratic runtime.
- * Both regexes must have the global flag.
+ * Passes already formatted errors through and wraps all others.
  */
-function extractElements(html: string, openTag: RegExp, closeTag: RegExp): string[] {
-  const elements: string[] = [];
-  let position = 0;
-  for (;;) {
-    openTag.lastIndex = position;
-    const open = openTag.exec(html);
-    if (!open) break;
-    const start = open.index + open[0].length;
-    closeTag.lastIndex = start;
-    const close = closeTag.exec(html);
-    if (!close) break;
-    elements.push(html.slice(start, close.index));
-    position = close.index + close[0].length;
+function rethrowApiError(error: unknown): never {
+  if (error instanceof Error && error.message.startsWith('Error:')) {
+    throw error;
   }
-  return elements;
+  throw new Error(handleApiError(error), { cause: error });
 }
 
 /**
@@ -117,7 +90,7 @@ export class DsbmobileClient {
     }
 
     // Remove surrounding quotes if present
-    this.token = token.replaceAll(/^"|"$/g, '');
+    this.token = token.replaceAll(/(?:^")|(?:"$)/g, '');
   }
 
   /**
@@ -131,119 +104,31 @@ export class DsbmobileClient {
   }
 
   /**
-   * Parses raw DSBmobile timetable items into structured TimetableEntry objects.
-   * Timetables have ConType=2 with children that contain the actual plan URLs.
-   * The parent item holds the descriptive title; children are individual pages.
+   * Fetches a list endpoint of the API and parses its items.
    */
-  private parseTimetables(items: DsbItem[]): TimetableEntry[] {
-    const entries: TimetableEntry[] = [];
-
-    for (const item of items) {
-      if (item.ConType === 2 && item.Childs && item.Childs.length > 0) {
-        const validChildren = item.Childs.filter((c) => c.Detail);
-        const isMultiPage = validChildren.length > 1;
-
-        // Each child represents a page of the plan
-        for (const [index, validChild] of validChildren.entries()) {
-          const child = validChild;
-          // Use the parent's descriptive title; append page number if multi-page
-          const title = isMultiPage ? `${item.Title} (Seite ${index + 1})` : item.Title;
-
-          const entry: TimetableEntry = {
-            id: child.Id,
-            title,
-            date: item.Date,
-            url: child.Detail,
-          };
-
-          if (child.Preview) {
-            entry.previewUrl = `https://light.dsbcontrol.de/DSBlightWebsite/Data/${child.Preview}`;
-          }
-
-          entries.push(entry);
-        }
-      } else if (item.Detail) {
-        // Direct URL in Detail field
-        const entry: TimetableEntry = {
-          id: item.Id,
-          title: item.Title,
-          date: item.Date,
-          url: item.Detail,
-        };
-
-        if (item.Preview) {
-          entry.previewUrl = `https://light.dsbcontrol.de/DSBlightWebsite/Data/${item.Preview}`;
-        }
-
-        entries.push(entry);
-      }
+  private async fetchList<T>(path: string, parse: (items: DsbItem[]) => T[]): Promise<T[]> {
+    try {
+      const token = await this.ensureAuthenticated();
+      const response = await this.http.get<DsbItem[]>(path, { params: { authid: token } });
+      return parse(response.data);
+    } catch (error) {
+      rethrowApiError(error);
     }
-
-    return entries;
   }
 
   /**
-   * Parses raw DSBmobile news items into structured NewsEntry objects.
+   * Downloads and parses one substitution plan page.
    */
-  private parseNews(items: DsbItem[]): NewsEntry[] {
-    const entries: NewsEntry[] = [];
-
-    for (const item of items) {
-      entries.push({
-        id: item.Id,
-        title: item.Title,
-        detail: item.Detail,
-        date: item.Date,
-        tags: item.Tags,
-      });
-
-      // Also process nested children if present
-      if (item.Childs && item.Childs.length > 0) {
-        for (const child of item.Childs) {
-          entries.push({
-            id: child.Id,
-            title: child.Title || item.Title,
-            detail: child.Detail,
-            date: child.Date || item.Date,
-            tags: child.Tags || item.Tags,
-          });
-        }
-      }
-    }
-
-    return entries;
-  }
-
-  /**
-   * Parses raw DSBmobile document items into structured DocumentEntry objects.
-   */
-  private parseDocuments(items: DsbItem[]): DocumentEntry[] {
-    const entries: DocumentEntry[] = [];
-
-    for (const item of items) {
-      if (item.ConType === 2 && item.Childs && item.Childs.length > 0) {
-        // Documents are often nested
-        for (const child of item.Childs) {
-          if (child.Detail) {
-            entries.push({
-              id: child.Id,
-              title: child.Title || item.Title,
-              url: child.Detail,
-              date: child.Date || item.Date,
-            });
-          }
-        }
-      } else if (item.Detail) {
-        entries.push({
-          id: item.Id,
-          title: item.Title,
-          url: item.Detail,
-          date: item.Date,
-        });
-      }
-    }
-
-    return entries;
+  private async fetchPlan(timetable: TimetableEntry): Promise<SubstitutionPlan> {
+    // Use a standalone axios call with the full URL (not the base-URL-bound instance)
+    // responseType 'arraybuffer' lets us decode the latin-1 charset ourselves
+    const response = await axios.get<ArrayBuffer>(timetable.url, {
+      responseType: 'arraybuffer',
+      timeout: REQUEST_TIMEOUT_MS,
+    });
+    // The HTML is encoded in iso-8859-1/windows-1252 — decode it properly
+    const htmlText = new TextDecoder('windows-1252').decode(response.data);
+    return parseSubstitutionHtml(htmlText, timetable.date);
   }
 
   /**
@@ -253,19 +138,7 @@ export class DsbmobileClient {
    * @throws Error if authentication fails or the request fails
    */
   async getTimetables(): Promise<TimetableEntry[]> {
-    try {
-      const token = await this.ensureAuthenticated();
-      const response = await this.http.get<DsbItem[]>('/dsbtimetables', {
-        params: { authid: token },
-      });
-
-      return this.parseTimetables(response.data);
-    } catch (error) {
-      if (error instanceof Error && error.message.startsWith('Error:')) {
-        throw error;
-      }
-      throw new Error(handleApiError(error), { cause: error });
-    }
+    return this.fetchList('/dsbtimetables', parseTimetables);
   }
 
   /**
@@ -275,19 +148,7 @@ export class DsbmobileClient {
    * @throws Error if authentication fails or the request fails
    */
   async getNews(): Promise<NewsEntry[]> {
-    try {
-      const token = await this.ensureAuthenticated();
-      const response = await this.http.get<DsbItem[]>('/newstab', {
-        params: { authid: token },
-      });
-
-      return this.parseNews(response.data);
-    } catch (error) {
-      if (error instanceof Error && error.message.startsWith('Error:')) {
-        throw error;
-      }
-      throw new Error(handleApiError(error), { cause: error });
-    }
+    return this.fetchList('/newstab', parseNews);
   }
 
   /**
@@ -297,19 +158,7 @@ export class DsbmobileClient {
    * @throws Error if authentication fails or the request fails
    */
   async getDocuments(): Promise<DocumentEntry[]> {
-    try {
-      const token = await this.ensureAuthenticated();
-      const response = await this.http.get<DsbItem[]>('/dsbdocuments', {
-        params: { authid: token },
-      });
-
-      return this.parseDocuments(response.data);
-    } catch (error) {
-      if (error instanceof Error && error.message.startsWith('Error:')) {
-        throw error;
-      }
-      throw new Error(handleApiError(error), { cause: error });
-    }
+    return this.fetchList('/dsbdocuments', parseDocuments);
   }
 
   /**
@@ -321,187 +170,31 @@ export class DsbmobileClient {
    * @throws Error if authentication fails or the request fails
    */
   async getSubstitutions(): Promise<SubstitutionPlan[]> {
+    let timetables: TimetableEntry[];
     try {
-      const timetables = await this.getTimetables();
-      const merged = new Map<string, SubstitutionPlan>();
-
-      for (const timetable of timetables) {
-        try {
-          // Use a standalone axios call with the full URL (not the base-URL-bound instance)
-          // responseType 'arraybuffer' lets us decode the latin-1 charset ourselves
-          const response = await axios.get<ArrayBuffer>(timetable.url, {
-            responseType: 'arraybuffer',
-            timeout: REQUEST_TIMEOUT_MS,
-          });
-          // The HTML is encoded in iso-8859-1/windows-1252 — decode it properly
-          const htmlText = new TextDecoder('windows-1252').decode(response.data);
-          const plan = parseSubstitutionHtml(htmlText, timetable.date);
-          const existing = merged.get(plan.date);
-          if (existing) {
-            existing.entries.push(...plan.entries);
-          } else {
-            merged.set(plan.date, { ...plan, entries: [...plan.entries] });
-          }
-        } catch {
-          // Skip pages that fail to load; don't abort the whole request
-        }
-      }
-
-      return [...merged.values()].map((plan) => ({
-        ...plan,
-        entries: mergeConsecutivePeriods(plan.entries),
-      }));
+      timetables = await this.getTimetables();
     } catch (error) {
-      if (error instanceof Error && error.message.startsWith('Error:')) {
-        throw error;
-      }
-      throw new Error(handleApiError(error), { cause: error });
+      rethrowApiError(error);
     }
-  }
-}
+    const merged = new Map<string, SubstitutionPlan>();
 
-/**
- * Parses the HTML content of a DSBmobile substitution plan page.
- * The HTML is generated by Untis and has a consistent structure.
- * Exported for unit testing.
- */
-export function parseSubstitutionHtml(html: string, lastUpdated: string): SubstitutionPlan {
-  // Extract plan date (e.g. "20.3.2026 Freitag (Seite 1 / 8)") and convert to ISO date string
-  const titleMarker = 'class="mon_title">';
-  const titleStart = html.indexOf(titleMarker);
-  const titleEnd = titleStart === -1 ? -1 : html.indexOf('</div>', titleStart);
-  const rawDate =
-    titleEnd === -1
-      ? ''
-      : decodeHtmlEntities(stripHtmlTags(html.slice(titleStart + titleMarker.length, titleEnd)));
-  const datePartMatch = /^(\d{1,2})\.(\d{1,2})\.(\d{4})/.exec(rawDate);
-  if (!datePartMatch) {
-    throw new Error(`Could not parse plan date from HTML: "${rawDate}"`);
-  }
-  const date = `${datePartMatch[3]}-${datePartMatch[2].padStart(2, '0')}-${datePartMatch[1].padStart(2, '0')}`;
-
-  // Parse all table rows
-  const entries: SubstitutionEntry[] = [];
-  let currentClass = '';
-
-  for (const rowHtml of extractElements(html, /<tr[^<>]*>/g, /<\/tr>/g)) {
-    const cells = extractElements(rowHtml, /<t[dh][^<>]*>/g, /<\/t[dh]>/g).map((cell) =>
-      decodeHtmlEntities(stripHtmlTags(cell)),
-    );
-
-    if (cells.length === 0) continue;
-
-    // Class header row: single cell with class name (e.g. "10a  10a" or just "10a")
-    if (cells.length === 1) {
-      currentClass = cells[0].split(/\s+/, 1)[0];
-      continue;
-    }
-
-    // Skip header row and info rows
-    if (cells.length < 5 || cells[0] === 'Art') continue;
-
-    // Substitution row: Art | Stunde | Vertreter | Fach | Raum | Text
-    const [type = '', period = '', teacherField = '', subject = '', roomField = '', text = ''] =
-      cells;
-
-    // Teacher field: "OriginalTeacher?SubstituteTeacher" or just "SubstituteTeacher"
-    const [originalTeacher = '', substituteTeacher = ''] = teacherField.includes('?')
-      ? teacherField.split('?')
-      : ['', teacherField];
-
-    // Room field: "OriginalRoom?SubstituteRoom" or just "SubstituteRoom"
-    const [originalRoom = '', substituteRoom = ''] = roomField.includes('?')
-      ? roomField.split('?')
-      : ['', roomField];
-
-    entries.push({
-      className: currentClass,
-      type,
-      period,
-      originalTeacher,
-      substituteTeacher,
-      subject,
-      originalRoom,
-      substituteRoom,
-      text,
-    });
-  }
-
-  return { date, lastUpdated, entries };
-}
-
-/**
- * Parses a period string like "3", "5 - 6" or "5-6" into a start/end pair.
- * Returns undefined for anything else.
- */
-function parsePeriod(period: string): [number, number] | undefined {
-  const match = /^(\d+)(?:\s*-\s*(\d+))?$/.exec(period.trim());
-  if (!match) return undefined;
-  const start = Number(match[1]);
-  const end = match[2] === undefined ? start : Number(match[2]);
-  return start <= end ? [start, end] : undefined;
-}
-
-function formatPeriod(start: number, end: number): string {
-  return start === end ? String(start) : `${String(start)} - ${String(end)}`;
-}
-
-/**
- * Normalizes substitution entries: entries that are identical except for their period and
- * whose periods are consecutive (or overlap) are merged into a single entry with a range
- * (e.g. "3" and "4" become "3 - 4"). Ranges are always written as "start - end".
- * Entries with a period that is not a number or a range are kept unchanged.
- * Merged entries take the position of the first entry of their group.
- */
-export function mergeConsecutivePeriods(entries: SubstitutionEntry[]): SubstitutionEntry[] {
-  const groups = new Map<string, { entry: SubstitutionEntry; ranges: [number, number][] }>();
-  const order: (SubstitutionEntry | string)[] = [];
-
-  for (const entry of entries) {
-    const range = parsePeriod(entry.period);
-    if (!range) {
-      order.push(entry);
-      continue;
-    }
-    const key = JSON.stringify([
-      entry.className,
-      entry.type,
-      entry.originalTeacher,
-      entry.substituteTeacher,
-      entry.subject,
-      entry.originalRoom,
-      entry.substituteRoom,
-      entry.text,
-    ]);
-    const group = groups.get(key);
-    if (group) {
-      group.ranges.push(range);
-    } else {
-      groups.set(key, { entry, ranges: [range] });
-      order.push(key);
-    }
-  }
-
-  const result: SubstitutionEntry[] = [];
-  for (const item of order) {
-    if (typeof item !== 'string') {
-      result.push(item);
-      continue;
-    }
-    const { entry, ranges } = groups.get(item)!;
-    ranges.sort((a, b) => a[0] - b[0]);
-    const merged: [number, number][] = [];
-    for (const [start, end] of ranges) {
-      const last = merged.at(-1);
-      if (last && start <= last[1] + 1) {
-        last[1] = Math.max(last[1], end);
-      } else {
-        merged.push([start, end]);
+    for (const timetable of timetables) {
+      try {
+        const plan = await this.fetchPlan(timetable);
+        const existing = merged.get(plan.date);
+        if (existing) {
+          existing.entries.push(...plan.entries);
+        } else {
+          merged.set(plan.date, { ...plan, entries: [...plan.entries] });
+        }
+      } catch {
+        // Skip pages that fail to load; don't abort the whole request
       }
     }
-    for (const [start, end] of merged) {
-      result.push({ ...entry, period: formatPeriod(start, end) });
-    }
+
+    return [...merged.values()].map((plan) => ({
+      ...plan,
+      entries: mergeConsecutivePeriods(plan.entries),
+    }));
   }
-  return result;
 }

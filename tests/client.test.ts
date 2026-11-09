@@ -37,21 +37,16 @@ function serverError(status: number): AxiosError {
   });
 }
 
-type Route = unknown;
-
 /**
  * Creates a client whose API calls are answered from `routes` (path → data,
  * or an Error to throw). `/authid` answers with a valid token unless given.
  */
-function makeClient(routes: Record<string, Route>) {
+function makeClient(routes: Record<string, unknown>) {
   const client = new DsbmobileClient({ username: 'user', password: 'secret' });
   const http = (client as unknown as { http: AxiosInstance }).http;
   const get = vi.spyOn(http, 'get').mockImplementation((url: string) => {
-    const route = Object.hasOwn(routes, url)
-      ? routes[url]
-      : url === '/authid'
-        ? '"token-123"'
-        : undefined;
+    const fallback = url === '/authid' ? '"token-123"' : undefined;
+    const route = Object.hasOwn(routes, url) ? routes[url] : fallback;
     return route instanceof Error ? Promise.reject(route) : Promise.resolve({ data: route });
   });
   return { client, get };

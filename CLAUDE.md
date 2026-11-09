@@ -226,8 +226,11 @@ src/
   constants.ts       # API URLs, env var names, limits
   types.ts           # All TypeScript interfaces
   services/
-    dsbmobile.ts     # DsbmobileClient + parseSubstitutionHtml()
+    dsbmobile.ts     # DsbmobileClient
+    items.ts         # Parsers for the API items (timetables, news, documents)
+    parser.ts        # parseSubstitutionHtml() + mergeConsecutivePeriods()
   tools/
+    shared.ts        # Response helpers + registerListTool()
     documents.ts     # get_documents tool
     news.ts          # get_news tool
     substitutions.ts # get_substitutions tool

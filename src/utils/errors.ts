@@ -1,44 +1,50 @@
 import { AxiosError } from 'axios';
 
+const SERVICE_UNAVAILABLE =
+  'Error: DSBmobile service is temporarily unavailable. Please try again later.';
+const TIMEOUT =
+  'Error: Request timed out. The DSBmobile service may be slow or unavailable. Please try again.';
+const NO_CONNECTION =
+  'Error: Cannot connect to DSBmobile. Please check your internet connection and try again.';
+
+/** Messages for HTTP status codes of an API response. */
+const STATUS_MESSAGES: Partial<Record<number, string>> = {
+  401: 'Error: Authentication failed. Please verify your credentials are correct.',
+  403: 'Error: Access denied. Your account may not have permission to access this resource.',
+  404: 'Error: Resource not found. The DSBmobile API endpoint may have changed.',
+  429: 'Error: Rate limit exceeded. Please wait a moment before making more requests.',
+  500: SERVICE_UNAVAILABLE,
+  502: SERVICE_UNAVAILABLE,
+  503: SERVICE_UNAVAILABLE,
+  504: SERVICE_UNAVAILABLE,
+};
+
+/** Messages for network error codes when there is no response. */
+const NETWORK_MESSAGES: Partial<Record<string, string>> = {
+  ECONNABORTED: TIMEOUT,
+  ETIMEDOUT: TIMEOUT,
+  ENOTFOUND: NO_CONNECTION,
+  ECONNREFUSED: NO_CONNECTION,
+};
+
+function axiosErrorMessage(error: AxiosError): string | undefined {
+  if (error.response) {
+    const { status } = error.response;
+    return (
+      STATUS_MESSAGES[status] ??
+      `Error: API request failed with status ${status}. Please try again.`
+    );
+  }
+  return error.code === undefined ? undefined : NETWORK_MESSAGES[error.code];
+}
+
 /**
  * Converts an API error into a human-readable, actionable error message.
  * Credentials are never included in error messages.
  */
 export function handleApiError(error: unknown): string {
-  if (error instanceof AxiosError) {
-    if (error.response) {
-      switch (error.response.status) {
-        case 401: {
-          return 'Error: Authentication failed. Please verify your credentials are correct.';
-        }
-        case 403: {
-          return 'Error: Access denied. Your account may not have permission to access this resource.';
-        }
-        case 404: {
-          return 'Error: Resource not found. The DSBmobile API endpoint may have changed.';
-        }
-        case 429: {
-          return 'Error: Rate limit exceeded. Please wait a moment before making more requests.';
-        }
-        case 500:
-        case 502:
-        case 503:
-        case 504: {
-          return 'Error: DSBmobile service is temporarily unavailable. Please try again later.';
-        }
-        default: {
-          return `Error: API request failed with status ${error.response.status}. Please try again.`;
-        }
-      }
-    }
-    if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
-      return 'Error: Request timed out. The DSBmobile service may be slow or unavailable. Please try again.';
-    }
-    if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
-      return 'Error: Cannot connect to DSBmobile. Please check your internet connection and try again.';
-    }
-  }
-
+  const message = error instanceof AxiosError ? axiosErrorMessage(error) : undefined;
+  if (message) return message;
   return error instanceof Error
     ? `Error: ${error.message}`
     : 'Error: An unexpected error occurred. Please try again.';

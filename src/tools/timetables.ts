@@ -1,8 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { z } from 'zod';
-import { CHARACTER_LIMIT } from '../constants.js';
 import type { DsbmobileClient } from '../services/dsbmobile.js';
 import type { TimetableEntry } from '../types.js';
+import { registerListTool } from './shared.js';
 
 /**
  * Registers the get_timetables tool with the MCP server.
@@ -11,11 +10,10 @@ import type { TimetableEntry } from '../types.js';
  * from DSBmobile, including URLs to the HTML plan pages.
  */
 export function registerTimetablesTool(server: McpServer, client: DsbmobileClient): void {
-  server.registerTool(
-    'get_timetables',
-    {
-      title: 'Get DSBmobile Substitution Plans',
-      description: `Retrieves all available substitution plan (Vertretungsplan) entries from DSBmobile.
+  registerListTool(server, {
+    name: 'get_timetables',
+    title: 'Get DSBmobile Substitution Plans',
+    description: `Retrieves all available substitution plan (Vertretungsplan) entries from DSBmobile.
 
 Returns a list of substitution plan entries, each with:
 - id: Unique identifier for the plan entry
@@ -38,54 +36,12 @@ Returns "No substitution plans available" if no plans are currently published.
 Error handling:
 - Returns an error message if authentication fails (check DSB_USERNAME and DSB_PASSWORD)
 - Returns an error message if the DSBmobile service is unavailable`,
-      inputSchema: z.object({}).strict(),
-      annotations: {
-        readOnlyHint: true,
-        destructiveHint: false,
-        idempotentHint: true,
-        openWorldHint: true,
-      },
-    },
-    async () => {
-      try {
-        const entries = await client.getTimetables();
-
-        if (entries.length === 0) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: 'Aktuell sind keine Vertretungspläne auf DSBmobile verfügbar.',
-              },
-            ],
-          };
-        }
-
-        const output = {
-          count: entries.length,
-          timetables: entries,
-        };
-
-        const text = formatTimetables(entries);
-        const finalText =
-          text.length > CHARACTER_LIMIT
-            ? text.slice(0, CHARACTER_LIMIT) +
-              '\n\n[Response truncated. Use the plan URLs to access the full content.]'
-            : text;
-
-        return {
-          content: [{ type: 'text', text: finalText }],
-          structuredContent: output,
-        };
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'An unexpected error occurred.';
-        return {
-          content: [{ type: 'text', text: message }],
-          isError: true,
-        };
-      }
-    },
-  );
+    fetch: () => client.getTimetables(),
+    emptyMessage: 'Aktuell sind keine Vertretungspläne auf DSBmobile verfügbar.',
+    key: 'timetables',
+    format: formatTimetables,
+    truncationNote: '[Response truncated. Use the plan URLs to access the full content.]',
+  });
 }
 
 /**

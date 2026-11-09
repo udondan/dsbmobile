@@ -5,6 +5,7 @@
 [![Node.js](https://img.shields.io/node/v/@udondan/dsbmobile)](https://www.npmjs.com/package/@udondan/dsbmobile)
 [![CI](https://github.com/udondan/dsbmobile/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/udondan/dsbmobile/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/udondan/dsbmobile/graph/badge.svg)](https://codecov.io/gh/udondan/dsbmobile)
+[![Maintainability](https://qlty.sh/gh/udondan/projects/dsbmobile/maintainability.svg)](https://qlty.sh/gh/udondan/projects/dsbmobile)
 [![License](https://img.shields.io/github/license/udondan/dsbmobile)](LICENSE)
 
 Node.js-Paket für den Zugriff auf [DSBmobile](https://www.dsbmobile.de) – die digitale Schulkommunikationsplattform für Vertretungspläne, Neuigkeiten und Dokumente. Es kapselt die DSBmobile-API und bietet drei Schnittstellen über einen gemeinsamen Kern:

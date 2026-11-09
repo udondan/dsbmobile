@@ -1,8 +1,9 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { CHARACTER_LIMIT, ENV_CLASS } from '../constants.js';
+import { ENV_CLASS } from '../constants.js';
 import type { DsbmobileClient } from '../services/dsbmobile.js';
 import type { SubstitutionEntry, SubstitutionPlan } from '../types.js';
+import { errorResult, READ_ONLY_ANNOTATIONS, structuredResult, textResult } from './shared.js';
 
 /**
  * Registers the get_substitutions tool with the MCP server.
@@ -55,135 +56,97 @@ Error handling:
             `Optional: filter results to a specific class name (e.g. '05b', 'Q2_Kra'). Case-insensitive. Defaults to the DSB_CLASS environment variable if set.`,
           ),
       }),
-      annotations: {
-        readOnlyHint: true,
-        destructiveHint: false,
-        idempotentHint: true,
-        openWorldHint: true,
-      },
+      annotations: READ_ONLY_ANNOTATIONS,
     },
     async ({ className }) => {
       try {
         const plans = await client.getSubstitutions();
 
         if (plans.length === 0) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: 'Aktuell sind keine Vertretungspläne auf DSBmobile verfügbar.',
-              },
-            ],
-          };
+          return textResult('Aktuell sind keine Vertretungspläne auf DSBmobile verfügbar.');
         }
 
-        // Use the provided className, fall back to DSB_CLASS env var, or show all
+        // The explicit param takes priority over the DSB_CLASS env var; without both show all
         const effectiveClass = className ?? process.env[ENV_CLASS];
+        const filtered = filterByClass(plans, effectiveClass);
+        const totalEntries = countEntries(filtered);
 
-        // Apply class filter if provided (explicit param takes priority over env var)
-        const filter = effectiveClass?.toLowerCase();
-        const filtered = filter
-          ? plans.map((plan) => ({
-              ...plan,
-              entries: plan.entries.filter((entry) =>
-                entry.className.toLowerCase().includes(filter),
-              ),
-            }))
-          : plans;
-
-        const totalEntries = filtered.reduce((sum, p) => sum + p.entries.length, 0);
-
-        if (filter && totalEntries === 0) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `Keine Vertretungen für Klasse "${effectiveClass}" gefunden.`,
-              },
-            ],
-          };
-        }
-
-        const output = {
-          planCount: filtered.length,
-          totalEntries,
-          plans: filtered,
-        };
-
-        const text = formatSubstitutions(filtered, effectiveClass);
-        const finalText =
-          text.length > CHARACTER_LIMIT
-            ? text.slice(0, CHARACTER_LIMIT) +
-              '\n\n[Response truncated. Use the className filter to narrow results.]'
-            : text;
-
-        return {
-          content: [{ type: 'text', text: finalText }],
-          structuredContent: output,
-        };
+        return effectiveClass && totalEntries === 0
+          ? textResult(`Keine Vertretungen für Klasse "${effectiveClass}" gefunden.`)
+          : structuredResult(
+              formatSubstitutions(filtered, effectiveClass),
+              { planCount: filtered.length, totalEntries, plans: filtered },
+              '[Response truncated. Use the className filter to narrow results.]',
+            );
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'An unexpected error occurred.';
-        return {
-          content: [{ type: 'text', text: message }],
-          isError: true,
-        };
+        return errorResult(error);
       }
     },
   );
+}
+
+/** Keeps the entries whose class contains the filter (case-insensitive). */
+function filterByClass(plans: SubstitutionPlan[], filter?: string): SubstitutionPlan[] {
+  if (!filter) return plans;
+  const needle = filter.toLowerCase();
+  return plans.map((plan) => ({
+    ...plan,
+    entries: plan.entries.filter((entry) => entry.className.toLowerCase().includes(needle)),
+  }));
+}
+
+function countEntries(plans: SubstitutionPlan[]): number {
+  return plans.reduce((sum, p) => sum + p.entries.length, 0);
+}
+
+function groupByClass(entries: SubstitutionEntry[]): Map<string, SubstitutionEntry[]> {
+  const byClass = new Map<string, SubstitutionEntry[]>();
+  for (const entry of entries) {
+    const list = byClass.get(entry.className) ?? [];
+    list.push(entry);
+    byClass.set(entry.className, list);
+  }
+  return byClass;
+}
+
+/** "original → substitute", or whichever of both is set. */
+function formatChange(original: string, substitute: string): string {
+  return original && substitute ? `${original} → ${substitute}` : substitute || original;
+}
+
+function formatEntry(substitution: SubstitutionEntry): string {
+  const teacher = formatChange(substitution.originalTeacher, substitution.substituteTeacher);
+  const room = formatChange(substitution.originalRoom, substitution.substituteRoom);
+  const parts = [
+    `**${substitution.type}**`,
+    `Period ${substitution.period}`,
+    substitution.subject && `Subject: ${substitution.subject}`,
+    teacher && `Teacher: ${teacher}`,
+    room && `Room: ${room}`,
+    substitution.text && `Note: ${substitution.text}`,
+  ].filter(Boolean);
+  return `- ${parts.join(' | ')}`;
+}
+
+function formatPlan(plan: SubstitutionPlan): string[] {
+  const lines = [`## ${plan.date}`, `**Last Updated**: ${plan.lastUpdated}`, ''];
+  for (const [cls, entries] of groupByClass(plan.entries)) {
+    lines.push(`### Class ${cls}`, ...entries.map((entry) => formatEntry(entry)), '');
+  }
+  return lines;
 }
 
 /**
  * Formats substitution plans as human-readable markdown.
  */
 function formatSubstitutions(plans: SubstitutionPlan[], filter?: string): string {
-  const lines: string[] = [];
-  const totalEntries = plans.reduce((sum, p) => sum + p.entries.length, 0);
-
+  const totalEntries = countEntries(plans);
   const heading = filter
     ? `# Substitutions for class "${filter}" (${totalEntries} entries)`
     : `# DSBmobile Substitution Plans (${totalEntries} total entries)`;
 
-  lines.push(heading, '');
-
-  for (const plan of plans) {
-    if (plan.entries.length === 0) continue;
-
-    lines.push(`## ${plan.date}`, `**Last Updated**: ${plan.lastUpdated}`, '');
-
-    // Group entries by class
-    const byClass = new Map<string, SubstitutionEntry[]>();
-    for (const entry of plan.entries) {
-      const list = byClass.get(entry.className) ?? [];
-      list.push(entry);
-      byClass.set(entry.className, list);
-    }
-
-    for (const [cls, entries] of byClass) {
-      lines.push(`### Class ${cls}`);
-      for (const substitution of entries) {
-        const teacher =
-          substitution.originalTeacher && substitution.substituteTeacher
-            ? `${substitution.originalTeacher} → ${substitution.substituteTeacher}`
-            : substitution.substituteTeacher || substitution.originalTeacher;
-        const room =
-          substitution.originalRoom && substitution.substituteRoom
-            ? `${substitution.originalRoom} → ${substitution.substituteRoom}`
-            : substitution.substituteRoom || substitution.originalRoom;
-
-        const parts = [
-          `**${substitution.type}**`,
-          `Period ${substitution.period}`,
-          substitution.subject && `Subject: ${substitution.subject}`,
-          teacher && `Teacher: ${teacher}`,
-          room && `Room: ${room}`,
-          substitution.text && `Note: ${substitution.text}`,
-        ].filter(Boolean);
-
-        lines.push(`- ${parts.join(' | ')}`);
-      }
-      lines.push('');
-    }
-  }
-
-  return lines.join('\n');
+  const sections = plans
+    .filter((plan) => plan.entries.length > 0)
+    .flatMap((plan) => formatPlan(plan));
+  return [heading, '', ...sections].join('\n');
 }

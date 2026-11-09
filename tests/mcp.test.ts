@@ -21,7 +21,7 @@ vi.mock('@modelcontextprotocol/sdk/server/mcp.js', () => ({
 }));
 
 vi.mock('@modelcontextprotocol/sdk/server/stdio.js', () => ({
-  StdioServerTransport: class {},
+  StdioServerTransport: vi.fn(),
 }));
 
 function makeMockClient(): DsbmobileClient {
