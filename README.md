@@ -1,6 +1,6 @@
 # @udondan/dsbmobile
 
-![CLI, MCP-Server und SDK für DSBmobile (Digitales Schwarzes Brett)](https://raw.githubusercontent.com/udondan/dsbmobile/main/.github/banner.webp)
+![CLI, MCP-Server und SDK für DSBmobile – inoffizielles Toolkit](https://raw.githubusercontent.com/udondan/dsbmobile/main/.github/banner.webp)
 
 [![npm](https://img.shields.io/npm/v/@udondan/dsbmobile)](https://www.npmjs.com/package/@udondan/dsbmobile)
 [![Docker](https://img.shields.io/docker/v/udondan/dsbmobile?sort=semver&label=docker)](https://hub.docker.com/r/udondan/dsbmobile)
