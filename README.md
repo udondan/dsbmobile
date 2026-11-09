@@ -1,6 +1,6 @@
 # @udondan/dsbmobile
 
-![DSBmobile – Digitales Schwarzes Brett: CLI, MCP-Server und SDK](https://raw.githubusercontent.com/udondan/dsbmobile/main/.github/banner.webp)
+![CLI, MCP-Server und SDK für DSBmobile (Digitales Schwarzes Brett)](https://raw.githubusercontent.com/udondan/dsbmobile/main/.github/banner.webp)
 
 [![npm](https://img.shields.io/npm/v/@udondan/dsbmobile)](https://www.npmjs.com/package/@udondan/dsbmobile)
 [![Docker](https://img.shields.io/docker/v/udondan/dsbmobile?sort=semver&label=docker)](https://hub.docker.com/r/udondan/dsbmobile)
@@ -10,7 +10,10 @@
 [![Maintainability](https://qlty.sh/gh/udondan/projects/dsbmobile/maintainability.svg)](https://qlty.sh/gh/udondan/projects/dsbmobile)
 [![License](https://img.shields.io/github/license/udondan/dsbmobile)](LICENSE)
 
-Node.js-Paket für den Zugriff auf [DSBmobile](https://www.dsbmobile.de) – die digitale Schulkommunikationsplattform für Vertretungspläne, Neuigkeiten und Dokumente. Es kapselt die DSBmobile-API und bietet drei Schnittstellen über einen gemeinsamen Kern:
+> [!NOTE]
+> Inoffizielles Community-Projekt. Nicht mit der heinekingmedia GmbH verbunden, nicht von ihr unterstützt oder autorisiert.
+
+Inoffizielles Node.js-Paket für den Zugriff auf [DSBmobile](https://www.dsbmobile.de) – die digitale Schulkommunikationsplattform für Vertretungspläne, Neuigkeiten und Dokumente. Es kapselt die DSBmobile-API und bietet drei Schnittstellen über einen gemeinsamen Kern:
 
 - **SDK** – importierbare `DsbmobileClient`-Klasse für Node.js-Projekte
 - **CLI** – `dsbmobile`-Befehl für das Terminal
@@ -28,6 +31,7 @@ Node.js-Paket für den Zugriff auf [DSBmobile](https://www.dsbmobile.de) – die
 - [Verfügbare MCP-Tools](#verfügbare-mcp-tools)
 - [Entwicklung](#entwicklung)
 - [Lizenz](#lizenz)
+- [Disclaimer](#disclaimer)
 
 ## Installation
 
@@ -377,3 +381,7 @@ wechselt zurück.
 ## Lizenz
 
 MIT
+
+## Disclaimer
+
+Dieses Projekt ist ein inoffizielles, unabhängiges Open-Source-Projekt und steht in keiner Verbindung zur heinekingmedia GmbH. DSBmobile und Digitales Schwarzes Brett (DSB) sind Produkte bzw. Marken der heinekingmedia GmbH. Die Namen werden ausschließlich zur Beschreibung der Kompatibilität verwendet. Die Nutzung erfolgt auf eigenes Risiko und unter Beachtung der Nutzungsbedingungen von DSBmobile.
