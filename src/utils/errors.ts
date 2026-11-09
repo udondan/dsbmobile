@@ -20,12 +20,12 @@ const STATUS_MESSAGES: Partial<Record<number, string>> = {
 };
 
 /** Messages for network error codes when there is no response. */
-const NETWORK_MESSAGES: Partial<Record<string, string>> = {
-  ECONNABORTED: TIMEOUT,
-  ETIMEDOUT: TIMEOUT,
-  ENOTFOUND: NO_CONNECTION,
-  ECONNREFUSED: NO_CONNECTION,
-};
+const NETWORK_MESSAGES = new Map<string | undefined, string>([
+  ['ECONNABORTED', TIMEOUT],
+  ['ETIMEDOUT', TIMEOUT],
+  ['ENOTFOUND', NO_CONNECTION],
+  ['ECONNREFUSED', NO_CONNECTION],
+]);
 
 function axiosErrorMessage(error: AxiosError): string | undefined {
   if (error.response) {
@@ -35,7 +35,7 @@ function axiosErrorMessage(error: AxiosError): string | undefined {
       `Error: API request failed with status ${status}. Please try again.`
     );
   }
-  return error.code === undefined ? undefined : NETWORK_MESSAGES[error.code];
+  return NETWORK_MESSAGES.get(error.code);
 }
 
 /**
