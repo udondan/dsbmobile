@@ -3,8 +3,8 @@
 name: dsbmobile
 type: server
 image: udondan/dsbmobile:latest
-title: dsbmobile (unofficial)
-description: Unofficial, not affiliated with heinekingmedia GmbH. German school substitution plans (Vertretungspläne), timetables, news and documents via DSBmobile
+title: dsbmobile (inoffiziell)
+description: Inoffiziell, nicht mit der heinekingmedia GmbH verbunden. Vertretungspläne, Stundenpläne, News und Dokumente über DSBmobile
 secrets:
   - name: dsbmobile.username
     env: DSB_USERNAME
