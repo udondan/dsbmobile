@@ -16,14 +16,13 @@ function decodeHtmlEntities(s: string): string {
 
 /**
  * Strip all HTML tags and trim whitespace.
- * Leftover `<` from nested or unclosed fragments like `<scr<b>ipt>` are removed too, so no
- * tag can remain. A literal `<` in the text is encoded as `&lt;` and decoded afterwards.
+ * Drops each `<` with everything up to the next `>`, or only the `<` if no `>` follows before
+ * the next `<`. Nested or unclosed fragments like `<scr<b>ipt>` leave no tag behind.
+ * A literal `<` in the text is encoded as `&lt;` and decoded afterwards.
  */
 function stripHtmlTags(s: string): string {
-  return s
-    .replaceAll(/<[^<>]*>/g, '')
-    .replaceAll('<', '')
-    .trim();
+  const [text, ...afterOpen] = s.split('<');
+  return [text, ...afterOpen.map((part) => part.slice(part.indexOf('>') + 1))].join('').trim();
 }
 
 /** Strip tags, then decode entities. */
