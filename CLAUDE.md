@@ -75,6 +75,21 @@ Run integration tests (requires live DSB credentials):
 DSB_USERNAME=your_user DSB_PASSWORD=your_pass mise run test:integration
 ```
 
+### CI
+
+Node.js and Bun versions are pinned only in `mise.toml` (Node on the same major
+as the Docker base image, Bun on the version of the Bun image in the
+`Dockerfile`); the workflows install them with `jdx/mise-action` (tool cache on
+in `ci.yml`, off in `publish.yml`). Every job in `ci.yml` except `required`
+waits for boarding-gate (job `Queue`, one run at a time because the integration
+tests share one live DSBmobile account) and fails if it failed: while another
+run holds the turn, the branch likely needs a rebase anyway, so nothing runs in
+parallel. Pushes to main and pull requests from forks skip the wait. On pull
+requests the `changes` job (`dorny/paths-filter`) decides whether `test` runs;
+`docker` only runs if `test` passed. When the code or the build starts
+depending on another file, add it to that filter, or the tests silently skip.
+`actions` (actionlint, zizmor) and `qlty` always run.
+
 Note: `tests/shim.test.ts` verifies `dist/` output structure — it requires a prior `tsc` build, which `"pretest": "tsc"` handles automatically.
 
 ## Code Style
