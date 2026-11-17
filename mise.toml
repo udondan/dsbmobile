@@ -1,9 +1,8 @@
-[settings]
-# Node comes from .node-version, shared with setup-node in the workflows and
-# kept on the same major as the Docker base image.
-idiomatic_version_file_enable_tools = ["node"]
-
 [tools]
+# Runtime and package manager. The only place for these versions: the workflows
+# install them with jdx/mise-action. Node stays on the same major as the Docker
+# base image, Bun on the version of the Bun image in the Dockerfile.
+node = "26"
 bun = "1.4.4"
 # Workflow linters for the CI actions job, which installs only these three.
 actionlint = "1.7.12"
