@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/udondan/dsbmobile/compare/v1.4.0...v1.4.1) (2026-11-21)
+
+
+### Bug Fixes
+
+* **deps:** resolve minimatch and katex security alerts ([#134](https://github.com/udondan/dsbmobile/issues/134)) ([f70079d](https://github.com/udondan/dsbmobile/commit/f70079d1f41304ef4d4436ad777ac652163f74c7))
+
 ## [1.4.0](https://github.com/udondan/dsbmobile/compare/v1.3.0...v1.4.0) (2026-11-02)
 
 
