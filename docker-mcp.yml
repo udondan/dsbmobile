@@ -1,0 +1,20 @@
+# Server definition for the Docker MCP Toolkit.
+# Add it to a profile with `mise run docker-register` (see README, section Docker MCP Toolkit).
+name: dsbmobile
+type: server
+image: udondan/dsbmobile:latest
+title: dsbmobile (inoffiziell)
+description: Inoffiziell, nicht mit der heinekingmedia GmbH verbunden. Vertretungspläne, Stundenpläne, News und Dokumente über DSBmobile
+secrets:
+  - name: dsbmobile.username
+    env: DSB_USERNAME
+    example: '123456'
+    description: DSBmobile username/ID
+  - name: dsbmobile.password
+    env: DSB_PASSWORD
+    example: your_password
+    description: DSBmobile password
+  - name: dsbmobile.class
+    env: DSB_CLASS
+    example: 07b
+    description: Default class filter for get_substitutions (optional)
