@@ -3,7 +3,7 @@
 
 # Bun only installs the runtime dependencies from bun.lock. The runtime image
 # has no Bun.
-FROM oven/bun:1.4.4-alpine AS deps
+FROM oven/bun:1.4.5-alpine AS deps
 
 WORKDIR /app
 COPY package.json bun.lock ./
