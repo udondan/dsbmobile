@@ -187,6 +187,50 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }} # zizmor checks the actions online
 
+  # Validates server.json with the registry's own tool, the same release of
+  # mcp-publisher as in publish.yml, so a broken file fails here and not only
+  # in the release.
+  mcp-registry:
+    name: MCP Registry
+    needs: boarding-gate
+    # Fail instead of skip if boarding-gate failed, see the test job.
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      MCP_PUBLISHER_VERSION: v1.8.16
+    steps:
+      - name: Check turn
+        if: needs.boarding-gate.result == 'failure' || needs.boarding-gate.result == 'cancelled'
+        run: exit 1
+
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
+
+      - name: Download and verify mcp-publisher
+        run: |
+          set -euo pipefail
+          os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+          arch="$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
+          archive="mcp-publisher_${os}_${arch}.tar.gz"
+          base_url="https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}"
+
+          curl --fail --location --silent --show-error --output "$archive" "$base_url/$archive"
+          curl --fail --location --silent --show-error --output "$archive.sigstore.json" "$base_url/$archive.sigstore.json"
+          cosign verify-blob \
+            --bundle "$archive.sigstore.json" \
+            --certificate-identity "https://github.com/modelcontextprotocol/registry/.github/workflows/release.yml@refs/tags/${MCP_PUBLISHER_VERSION}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            "$archive"
+          tar xzf "$archive" mcp-publisher
+          rm -f "$archive" "$archive.sigstore.json"
+
+      - run: ./mcp-publisher validate server.json
+
   # Builds the image and runs it the way the Docker MCP Toolkit does, through
   # a profile and the gateway. Needs no DSBmobile credentials: the gateway sets
   # missing secrets to <UNKNOWN>, and the client only signs in when a tool is
@@ -286,7 +330,7 @@ jobs:
   # some jobs only run on pull requests.
   required:
     runs-on: ubuntu-latest
-    needs: [boarding-gate, changes, test, coverage, actions, docker, qlty]
+    needs: [boarding-gate, changes, test, coverage, actions, mcp-registry, docker, qlty]
     if: always()
     steps:
       - name: Check result
