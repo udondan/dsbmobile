@@ -5,10 +5,11 @@
 [![npm](https://img.shields.io/npm/v/@udondan/dsbmobile)](https://www.npmjs.com/package/@udondan/dsbmobile)
 [![Docker](https://img.shields.io/docker/v/udondan/dsbmobile?sort=semver&label=docker)](https://hub.docker.com/r/udondan/dsbmobile)
 [![Node.js](https://img.shields.io/node/v/@udondan/dsbmobile)](https://www.npmjs.com/package/@udondan/dsbmobile)
+[![udondan/dsbmobile MCP server](https://glama.ai/mcp/servers/udondan/dsbmobile/badges/score.svg)](https://glama.ai/mcp/servers/udondan/dsbmobile)
 [![CI](https://github.com/udondan/dsbmobile/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/udondan/dsbmobile/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/udondan/dsbmobile/graph/badge.svg)](https://codecov.io/gh/udondan/dsbmobile)
 [![Maintainability](https://qlty.sh/gh/udondan/projects/dsbmobile/maintainability.svg)](https://qlty.sh/gh/udondan/projects/dsbmobile)
-[![License](https://img.shields.io/github/license/udondan/dsbmobile)](LICENSE)
+[![License](https://img.shields.io/github/license/udondan/dsbmobile)](https://github.com/udondan/dsbmobile/blob/main/LICENSE)
 
 > [!NOTE]
 > Inoffizielles Community-Projekt. Nicht mit der heinekingmedia GmbH verbunden, nicht von ihr unterstützt oder autorisiert.
