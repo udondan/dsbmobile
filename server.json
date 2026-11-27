@@ -3,7 +3,7 @@
   "name": "io.github.udondan/dsbmobile",
   "title": "DSBmobile",
   "description": "Unofficial DSBmobile server: substitution plans, timetables, news and documents of a school",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "repository": {
     "url": "https://github.com/udondan/dsbmobile",
     "source": "github"
@@ -12,7 +12,7 @@
     {
       "registryType": "npm",
       "identifier": "@udondan/dsbmobile",
-      "version": "1.4.1",
+      "version": "1.5.0",
       "runtimeHint": "npx",
       "transport": {
         "type": "stdio"
