@@ -55,7 +55,10 @@ switches back.
 Releases (`publish.yml`) publish the npm package and push the Docker image
 `udondan/dsbmobile` (amd64 and arm64, tags `x.y.z`, `x.y`, `x`, `latest`, signed
 with cosign) with an access token from the GitHub environment `docker-hub`
-(`DOCKERHUB_USERNAME` variable, `DOCKERHUB_TOKEN` secret).
+(`DOCKERHUB_USERNAME` variable, `DOCKERHUB_TOKEN` secret). After the npm
+publish, they list the server in the MCP Registry as
+`io.github.udondan/dsbmobile` (`server.json`, GitHub OIDC). release-please
+keeps the versions in `server.json` in step with `package.json`.
 
 Run a single test file:
 
@@ -88,7 +91,8 @@ parallel. Pushes to main and pull requests from forks skip the wait. On pull
 requests the `changes` job (`dorny/paths-filter`) decides whether `test` runs;
 `docker` only runs if `test` passed. When the code or the build starts
 depending on another file, add it to that filter, or the tests silently skip.
-`actions` (actionlint, zizmor) and `qlty` always run.
+`actions` (actionlint, zizmor), `mcp-registry` (`mcp-publisher validate` on
+`server.json`) and `qlty` always run.
 
 Note: `tests/shim.test.ts` verifies `dist/` output structure — it requires a prior `tsc` build, which `"pretest": "tsc"` handles automatically.
 

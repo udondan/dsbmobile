@@ -22,7 +22,11 @@
       "release-type": "node",
       "include-component-in-tag": false,
       "pull-request-title-pattern": "chore: release ${version}",
-      "bump-minor-pre-major": true
+      "bump-minor-pre-major": true,
+      "extra-files": [
+        { "type": "json", "path": "server.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "server.json", "jsonpath": "$.packages[0].version" }
+      ]
     }
   }
 }

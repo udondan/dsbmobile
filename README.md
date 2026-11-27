@@ -149,6 +149,9 @@ docker run --rm -i -e DSB_USERNAME -e DSB_PASSWORD -e DSB_CLASS udondan/dsbmobil
 Ohne Argumente startet das Image den MCP-Server. `-i` hält stdin offen, über das
 der Server mit dem Client spricht.
 
+In der [MCP Registry](https://registry.modelcontextprotocol.io/) ist der Server
+als `io.github.udondan/dsbmobile` gelistet.
+
 ### Einrichtung in Claude Code
 
 ```bash
