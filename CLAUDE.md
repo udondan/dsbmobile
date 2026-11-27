@@ -37,6 +37,7 @@ mise run test:watch     # Run tests in watch mode
 mise run typecheck      # Type-check without emitting files
 mise run lint           # Run ESLint
 mise run lint:fix       # Auto-fix ESLint issues
+mise run lint:tools     # Lint the MCP tool descriptions (tdqs, Glama's TDQS checks; CI fails on warnings)
 mise run format         # Format with Prettier
 mise run format:check   # Check formatting without writing
 mise run markdownlint   # Lint markdown files

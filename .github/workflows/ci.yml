@@ -107,6 +107,17 @@ jobs:
       # need the live account and don't run on push to main, so their coverage
       # would be missing from the report of main that Codecov compares with.
       - run: bun run test -- --coverage --coverage.reporter=lcov --coverage.reporter=text
+      # Tool Definition Quality Score (TDQS) of Glama on the server built by
+      # the tests above. Warnings fail the job, notes only go into the summary.
+      # The server only signs in when a tool is called, so placeholder
+      # credentials are enough to list the tools.
+      - name: Lint the MCP tool descriptions
+        run: |
+          status=0
+          bun run lint:tools --format markdown --output tdqs.md || status=$?
+          cat tdqs.md
+          cat tdqs.md >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
       - name: Run integration tests
         if: github.event_name != 'push'
         run: bun run test -- tests/api.integration.test.ts
