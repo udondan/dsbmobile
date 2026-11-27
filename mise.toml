@@ -71,6 +71,11 @@ run = "bun run lint"
 description = "Auto-fix ESLint issues"
 run = "bun run lint:fix"
 
+[tasks."lint:tools"]
+description = "Lint the MCP tool descriptions (Tool Definition Quality Score), needs a build"
+depends = ["build"]
+run = "bun run lint:tools"
+
 [tasks.format]
 description = "Format all files with Prettier"
 run = "bun run format"

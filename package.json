@@ -55,6 +55,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.lint.json",
     "lint": "eslint src/ tests/",
     "lint:fix": "eslint --fix src/ tests/",
+    "lint:tools": "tdqs lint --command \"env DSB_USERNAME=lint DSB_PASSWORD=lint node dist/cli.js mcp\" --server-name dsbmobile --fail-on warning",
     "format": "prettier --write src/ tests/",
     "format:check": "prettier --check src/ tests/",
     "markdownlint": "markdownlint-cli2 '**/*.md' '#node_modules' '#.claude' '#.vibe' '#CHANGELOG.md'"
@@ -78,6 +79,7 @@
     "eslint-plugin-prettier": "5.5.7",
     "eslint-plugin-unicorn": "80.0.0",
     "markdownlint-cli2": "0.24.2",
+    "mcp-tdqs": "0.2.0",
     "prettier": "3.10.1",
     "typescript": "6.0.3",
     "typescript-eslint": "8.74.0",
