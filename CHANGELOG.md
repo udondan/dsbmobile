@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/udondan/dsbmobile/compare/v1.4.1...v1.5.0) (2026-11-27)
+
+
+### Features
+
+* publish the MCP server to the MCP Registry ([#150](https://github.com/udondan/dsbmobile/issues/150)) ([4a1793b](https://github.com/udondan/dsbmobile/commit/4a1793bda36e3263d91da5572ce2936a26591887))
+
 ## [1.4.1](https://github.com/udondan/dsbmobile/compare/v1.4.0...v1.4.1) (2026-11-23)
 
 
