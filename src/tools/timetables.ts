@@ -27,9 +27,12 @@ classes have substitutions, which teachers are replaced, which rooms are used, e
 The HTML format varies by school, so the URL is returned for further processing.
 
 Use this tool when:
-- A user asks "Do I have any substitutions today?"
-- A user wants to check the school's substitution schedule
-- A user asks about teacher absences or room changes
+- A user wants to know which plans are published and when they were last updated
+- A user wants the link to a plan or its preview image
+
+For questions about the substitutions themselves ("Do I have any substitutions
+today?", teacher absences, cancelled lessons, room changes), use get_substitutions,
+which reads the plans and returns the entries.
 
 Returns "No substitution plans available" if no plans are currently published.
 
