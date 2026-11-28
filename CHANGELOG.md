@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/udondan/dsbmobile/compare/v1.5.0...v1.6.0) (2026-11-28)
+
+
+### Features
+
+* route substitution questions from get_timetables to get_substitutions ([#159](https://github.com/udondan/dsbmobile/issues/159)) ([940a161](https://github.com/udondan/dsbmobile/commit/940a161a52ca76a9defa0783a7d83fdd2b8d5a67))
+
 ## [1.5.0](https://github.com/udondan/dsbmobile/compare/v1.4.1...v1.5.0) (2026-11-27)
 
 
