@@ -1,0 +1,48 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.udondan/dsbmobile",
+  "title": "DSBmobile",
+  "description": "Unofficial DSBmobile server: substitution plans, timetables, news and documents of a school",
+  "version": "1.5.0",
+  "repository": {
+    "url": "https://github.com/udondan/dsbmobile",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@udondan/dsbmobile",
+      "version": "1.5.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "mcp"
+        }
+      ],
+      "environmentVariables": [
+        {
+          "name": "DSB_USERNAME",
+          "description": "DSBmobile username/ID",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "DSB_PASSWORD",
+          "description": "DSBmobile password",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "DSB_CLASS",
+          "description": "Default class filter for get_substitutions, e.g. 07b",
+          "isRequired": false,
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}
